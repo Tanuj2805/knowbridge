@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:02.000 --> 00:00:08.500
+Ishita Rao: Sprint review for Rover. Kunal, you're leaving for the internship in January, so let's cover telemetry.
+
+2
+00:00:09.000 --> 00:00:21.000
+Kunal Shah: The telemetry dashboard runs on the lab PC. I start it by hand with a script in my home folder. Nobody else has run it yet.
+
+3
+00:00:21.500 --> 00:00:30.000
+Kunal Shah: The ESP32 sends speed and battery once a second over campus wifi.
+
+4
+00:00:31.000 --> 00:00:40.000
+Ishita Rao: That's a risk. Rohan, can you shadow Kunal and run it yourself before December?
+
+5
+00:00:41.000 --> 00:00:47.000
+Rohan Das: Yes, I'll do it next week. Motor PID is still drifting left at full speed though.
+
+6
+00:00:48.000 --> 00:00:58.000
+Ananya Gupta: The new encoder arrives Friday. Also we decided Li-ion over LiPo after the overheating, so the battery mount is getting redesigned.
+
+7
+00:01:00.000 --> 00:01:09.000
+Ishita Rao: Registration for the competition closes on 1 December. Nobody owns that yet. I'll take it.

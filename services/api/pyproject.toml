@@ -1,0 +1,68 @@
+[project]
+name = "knowbridge-api"
+version = "0.1.0"
+description = "KnowBridge API and agent pipeline"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.162",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "sqlalchemy>=2.0.36",
+  "psycopg[binary,pool]>=3.2",
+  "alembic>=1.14",
+  "pgvector>=0.3.6",
+  "pyjwt>=2.10",
+  "httpx>=0.28",
+  "python-multipart>=0.0.20",
+  "google-genai>=1.50",
+  "langgraph>=1.0",
+  "langgraph-checkpoint-postgres>=2.0",
+  "openfga-sdk>=0.9",
+  "mcp>=1.20",
+  "pypdf>=5.1",
+  "python-docx>=1.1",
+  "pyyaml>=6.0",
+  "tenacity>=9.0",
+  "cryptography>=43",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-cov>=6.0", "ruff>=0.8"]
+presidio = ["presidio-analyzer>=2.2"]
+# Run the search embedding model on this server instead of calling Gemini (~1.5 GB RAM)
+local-search = ["fastembed>=0.9,<1"]
+observability = ["langfuse>=3.0"]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+  "db: needs a running Postgres (DATABASE_URL)",
+  "llm: calls the Gemini API (GEMINI_API_KEY)",
+  "model: runs the real local embedding model (KB_REAL_MODEL=1)",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+# B008: FastAPI's Depends() idiom. UP042: str+Enum is what Pydantic/SQLAlchemy expect.
+ignore = ["S101", "B008", "UP042"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]  # not our alembic/ folder
+
+[tool.ruff.lint.per-file-ignores]
+"app/sentinel/rules.py" = ["E501"]  # regexes read better on one line
+"app/config.py" = ["S105"]  # dev-only default; production sets API_JWT_SECRET
+"tests/*" = ["S105", "S106"]

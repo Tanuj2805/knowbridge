@@ -1,0 +1,13 @@
+03/09/26, 7:00 pm - Messages and calls are end-to-end encrypted. Only people in this chat can read, listen to, or share them. Learn more.
+03/09/26, 7:00 pm - Ishita Rao created group "Rover Team"
+03/09/26, 7:01 pm - Ishita Rao: Welcome everyone! Rover 2027 ke liye yeh group hai. Har Friday 5 baje meeting
+03/09/26, 7:05 pm - Kunal Shah: Arduino Mega use karenge ya ESP32? Mujhe lagta hai ESP32 better hai, WiFi built-in hai
+03/09/26, 7:09 pm - Ishita Rao: Haan ESP32 final. Telemetry ke liye WiFi chahiye hi
+12/09/26, 6:40 pm - Kunal Shah: Lab PC ka login: user robolab, password hai Rover#2027 — kisi ko share mat karna
+12/09/26, 6:41 pm - Ishita Rao: bhai group mein mat daal yeh 😑
+20/09/26, 8:15 pm - Ananya Gupta: Motor driver vendor ka number 98765 12345, Ravi bhaiya. Unse hi order karna
+20/09/26, 8:17 pm - Ananya Gupta: Payment UPI pe karna hai: roboparts@okicici
+02/10/26, 9:30 pm - Kunal Shah: Battery overheat ho rahi hai 15 min ke baad. LiPo ki jagah Li-ion pack try karte hai
+02/10/26, 9:34 pm - Ishita Rao: Theek hai, Li-ion final. Safety pehle
+18/10/26, 6:00 pm - Ananya Gupta: Competition date 14 Feb 2027 hai, registration 15 Dec tak band
+18/10/26, 6:05 pm - Kunal Shah: Main Jan mein internship pe ja raha hoon, Rohan motor control sambhalega

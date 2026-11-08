@@ -1,0 +1,13 @@
+{
+  "guild": {"id": "1102345678901234567", "name": "Nimbus Tech Club"},
+  "channel": {"id": "1102345678901234602", "type": "GuildTextChat", "category": "Core", "name": "core-committee", "topic": "Core committee only"},
+  "exportedAt": "2026-11-06T10:00:00+05:30",
+  "messages": [
+    {"id": "1290000000000000101", "type": "Default", "timestamp": "2026-08-02T18:00:00+05:30", "content": "Razorpay account is set up under the club's account. KYC is done with my details, so any changes to payouts go through me.", "author": {"id": "u-priya", "name": "priya-n", "nickname": "Priya"}},
+    {"id": "1290000000000000102", "type": "Default", "timestamp": "2026-10-19T20:00:00+05:30", "content": "Zentrix confirmed the title slot. They want the leaderboard back during the fest and their logo on top of the sponsor page.", "author": {"id": "u-rahul", "name": "rahul-v", "nickname": "Rahul"}},
+    {"id": "1290000000000000103", "type": "Default", "timestamp": "2026-10-19T20:10:00+05:30", "content": "Fine, but a static one. We don't have time for anything live.", "author": {"id": "u-aarav", "name": "aarav-m", "nickname": "Aarav"}},
+    {"id": "1290000000000000104", "type": "Default", "timestamp": "2026-10-24T21:30:00+05:30", "content": "Heads up: Dev has a health issue and is on sick leave till 20 Nov. Please keep this between us and go easy on his tasks.", "author": {"id": "u-priya", "name": "priya-n", "nickname": "Priya"}},
+    {"id": "1290000000000000105", "type": "Default", "timestamp": "2026-10-26T08:15:00+05:30", "content": "Who's renewing nimbusfest.in? It's on Aarav's GoDaddy and it's due 2 Dec.", "author": {"id": "u-kabir", "name": "kabir-s", "nickname": "Kabir"}},
+    {"id": "1290000000000000106", "type": "Reply", "timestamp": "2026-10-26T09:00:00+05:30", "content": "I'll sort it before I leave.", "author": {"id": "u-aarav", "name": "aarav-m", "nickname": "Aarav"}, "reference": {"messageId": "1290000000000000105"}}
+  ]
+}

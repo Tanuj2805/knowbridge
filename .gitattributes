@@ -1,0 +1,15 @@
+# Normalise line endings in the repo; check out natively per platform.
+* text=auto
+
+# Files that run inside Linux containers must stay LF.
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.sql text eol=lf
+*.fga text eol=lf
+
+# Binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.docx binary

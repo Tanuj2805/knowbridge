@@ -1,0 +1,40 @@
+model
+  schema 1.1
+
+# Human-readable copy of the model. The API writes the identical JSON form
+# (app/gatekeeper/openfga.py: AUTHORIZATION_MODEL) on startup.
+
+type user
+
+# A KnowBridge project (one team / one product).
+type project
+  relations
+    define admin: [user]
+    define approver: [user]
+    define leaver: [user]
+    define successor: [user]
+    define viewer: [user]
+    define member: admin or approver or leaver or successor or viewer
+
+# A connected source. `reader` mirrors who could see it at the source
+# (repo collaborators, channel members, document sharing).
+type source
+  relations
+    define project: [project]
+    define reader: [user, project#member]
+
+# Sensitivity label inside a project: <project>-team, -restricted, -confidential.
+#   team:         project#member
+#   restricted:   project#admin, project#approver, users with a clearance
+#   confidential: only users with an explicit clearance
+type label
+  relations
+    define cleared: [user, project#member, project#admin, project#approver]
+
+# One Evidence Unit: visible only if the reader can see its source AND is
+# cleared for its label.
+type evidence
+  relations
+    define source: [source]
+    define label: [label]
+    define viewer: reader from source and cleared from label

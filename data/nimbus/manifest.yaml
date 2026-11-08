@@ -1,0 +1,51 @@
+# Project Nimbus: who's on the project and which sources it connects.
+# Loaded by `python -m app.seed nimbus` and by the "Load the demo" button.
+
+project:
+  name: Project Nimbus
+  description: >-
+    The web app for Nimbus 2027, Vidyanagar Institute of Technology's tech fest:
+    registrations, Razorpay payments, the schedule, QR tickets and gate check-in.
+
+people:
+  - {key: kabir, name: Kabir Singh, email: kabir@nimbus.demo, roles: [admin]}
+  - {key: priya, name: Priya Nair, email: priya@nimbus.demo, roles: [approver], clearances: [confidential]}
+  - {key: aarav, name: Aarav Mehta, email: aarav@nimbus.demo, roles: [leaver], role_template: lead, clearances: [restricted]}
+  - {key: meera, name: Meera Iyer, email: meera@nimbus.demo, roles: [successor], role_template: backend}
+  - {key: rahul, name: Rahul Verma, email: rahul@nimbus.demo, roles: [viewer], role_template: events, clearances: [restricted]}
+  - {key: sneha, name: Sneha Kulkarni, email: sneha@nimbus.demo, roles: [viewer], role_template: frontend}
+  - {key: dev, name: Dev Patel, email: dev@nimbus.demo, roles: [viewer], role_template: frontend}
+
+# readers: omit for "everyone on the project"
+sources:
+  - key: repo
+    kind: github
+    name: nimbus-fest/nimbus-app
+    files: [github/snapshot.yaml]
+  - key: notes
+    kind: document
+    name: Team meeting notes
+    files: [docs/team/*.md]
+  - key: committee
+    kind: document
+    name: Committee documents
+    sensitivity: restricted
+    readers: [aarav, priya, kabir, rahul]
+    files: [docs/committee/*.md]
+  - key: board
+    kind: taskboard
+    name: "Trello: Nimbus 2027"
+    files: [taskboard/trello-nimbus-2027.json]
+  - key: dev
+    kind: chat
+    name: "Discord #dev"
+    files: [chat/discord-dev.json]
+  - key: core
+    kind: chat
+    name: "Discord #core-committee"
+    readers: [aarav, priya, kabir, rahul]
+    files: [chat/discord-core-committee.json]
+  - key: wa
+    kind: chat
+    name: "WhatsApp: Nimbus Tech"
+    files: ["chat/WhatsApp Chat with Nimbus Tech.txt"]

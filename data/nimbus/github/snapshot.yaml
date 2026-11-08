@@ -1,0 +1,435 @@
+# Synthetic snapshot of github.com/nimbus-fest/nimbus-app (does not exist).
+# Same shape the live GitHub connector produces.
+repo: nimbus-fest/nimbus-app
+default_branch: main
+
+files:
+  - path: README.md
+    last_author: aarav-m
+    updated_at: 2026-09-22T18:10:00+05:30
+    content: |
+      # Nimbus 2027 — fest app
+
+      The official app for **Nimbus**, the annual tech fest of Vidyanagar Institute of Technology.
+      Fest dates: **16–18 January 2027**.
+
+      ## What it does
+
+      - Registration and ticket payments (Razorpay, UPI)
+      - Event schedule and venue map
+      - QR tickets and check-in at the gates
+      - Announcements
+      - Sponsor showcase
+
+      ## Stack
+
+      | Part | Choice |
+      |---|---|
+      | Frontend | Next.js PWA on Vercel |
+      | Auth | Firebase Auth (Google sign-in + email link) |
+      | API | Express on Railway |
+      | Database | Supabase Postgres |
+      | Email | Resend |
+      | Images | Cloudinary |
+      | Errors | Sentry |
+
+      There is no native Android app. The PWA is the app.
+
+      ## Running locally
+
+      ```bash
+      cp .env.example .env   # ask Aarav for the values
+      npm install
+      npm run dev            # web on :3000, API on :4000
+      ```
+
+      ## Backups
+
+      A GitHub Action takes a nightly `pg_dump` of the Supabase database and uploads it to the
+      club's Google Drive, using a Drive service account key stored as the `GDRIVE_SA_KEY` secret.
+
+      ## Who to ask
+
+      - Auth, payments, admin dashboard, backups: Aarav (@aarav-m)
+      - Check-in scanner, sponsor page, Cloudinary: Sneha (@sneha-k)
+      - Schedule, notifications, email: Dev (@dev-p)
+      - Deploys, Sentry: Kabir (@kabir-s)
+
+  - path: docs/architecture.md
+    last_author: aarav-m
+    updated_at: 2026-09-19T21:40:00+05:30
+    content: |
+      # Architecture notes
+
+      ## Database
+
+      Registrations, payments and check-ins live in **Supabase Postgres**. We prototyped on
+      Firestore in July and moved because the treasurer needs SQL exports for the college audit,
+      and Firestore exports were painful.
+
+      ## Time
+
+      All timestamps are stored in UTC and shown in IST (Asia/Kolkata). Don't store local time.
+
+      ## Tickets and check-in
+
+      Each paid registration gets a QR code containing an HMAC-SHA256 signed token
+      (registration id + event id + expiry). The scanner calls `POST /checkin` and the API checks
+      the signature with `TICKET_SIGNING_SECRET`. We don't put plain registration IDs in the QR,
+      because anyone with a screenshot of someone else's ID could forge a ticket.
+
+      ## Admin dashboard
+
+      `/admin` is only for the core committee. Access is a Firebase custom claim `role=core`,
+      set with `scripts/set-claims.js`.
+
+  - path: docs/deploy.md
+    last_author: kabir-s
+    updated_at: 2026-10-05T12:00:00+05:30
+    content: |
+      # Deploying
+
+      ## Web
+
+      Vercel, project `nimbus-app`. Every push to `main` deploys. The web app finds the API through
+      `NEXT_PUBLIC_API_URL`.
+
+      ## API
+
+      Railway, service `nimbus-api`, Hobby plan ($5/month). We moved here from Render on 3 Oct.
+      Billing is on Aarav's card for now.
+
+      ## Domain and DNS
+
+      `nimbusfest.in` is registered at GoDaddy. Renewal is due on **2 Dec 2026**.
+      Resend needs its DNS records (SPF, DKIM) on this domain for email to deliver properly.
+
+      ## Environment variables
+
+      | Name | Where | Notes |
+      |---|---|---|
+      | `DATABASE_URL` | Railway | Supabase connection string |
+      | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Railway | Live keys |
+      | `TICKET_SIGNING_SECRET` | Railway | Do not rotate before the fest |
+      | `RESEND_API_KEY` | Railway | |
+      | `SENTRY_DSN` | Vercel + Railway | |
+
+commits:
+  - {sha: 7c1e0a4b9f2d3e5a6b7c8d9e0f1a2b3c4d5e6f70, author: aarav-m, date: "2026-07-12T22:04:00+05:30", message: "Initial Next.js + Express scaffold", files: [package.json, web/app/page.tsx, api/src/index.ts]}
+  - {sha: 1a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b, author: aarav-m, date: "2026-07-15T23:30:00+05:30", message: "Add Firebase Auth with Google sign-in and email link", files: [web/lib/firebase.ts, web/app/login/page.tsx]}
+  - {sha: 2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c, author: aarav-m, date: "2026-07-20T19:12:00+05:30", message: "Deploy API to Render free tier; add render.yaml", files: [render.yaml]}
+  - {sha: 3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d, author: aarav-m, date: "2026-07-28T20:45:00+05:30", message: "Move registrations to Supabase Postgres (was Firestore prototype)", files: [api/src/db.ts, api/migrations/001_init.sql]}
+  - {sha: 4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e, author: dev-p, date: "2026-08-05T17:20:00+05:30", message: "Add schedule page backed by src/data/schedule.json", files: [web/app/schedule/page.tsx, web/src/data/schedule.json]}
+  - {sha: 5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f, author: aarav-m, date: "2026-08-10T23:55:00+05:30", message: "Razorpay checkout + webhook handler for payment.captured", files: [api/src/payments.ts, api/src/webhooks.ts]}
+  - {sha: 6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a, author: sneha-k, date: "2026-08-18T16:02:00+05:30", message: "Sponsor showcase page with tiered grid", files: [web/app/sponsors/page.tsx]}
+  - {sha: 7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b, author: sneha-k, date: "2026-08-22T21:18:00+05:30", message: "Upload event posters to Cloudinary", files: [web/lib/cloudinary.ts]}
+  - {sha: 8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c, author: aarav-m, date: "2026-08-31T22:40:00+05:30", message: "Limit free pass registrations (MAX_EVENTS_PER_PASS)", files: [api/src/register.ts]}
+  - {sha: 9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d, author: aarav-m, date: "2026-09-04T01:10:00+05:30", message: "Signed QR tokens for tickets (HMAC-SHA256)", files: [api/src/tickets.ts]}
+  - {sha: 0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e, author: sneha-k, date: "2026-09-09T18:30:00+05:30", message: "Check-in scanner page using html5-qrcode", files: [web/app/checkin/page.tsx]}
+  - {sha: 1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f, author: sneha-k, date: "2026-09-12T20:05:00+05:30", message: "Scanner: queue scans offline when gate Wi-Fi drops", files: [web/app/checkin/queue.ts]}
+  - {sha: 2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a, author: dev-p, date: "2026-09-15T19:44:00+05:30", message: "FCM push notifications for announcements", files: [web/lib/push.ts, api/src/announce.ts]}
+  - {sha: 3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b, author: aarav-m, date: "2026-09-19T21:40:00+05:30", message: "Admin dashboard behind Firebase custom claim role=core", files: [web/app/admin/page.tsx, scripts/set-claims.js]}
+  - {sha: 4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c, author: aarav-m, date: "2026-09-22T18:10:00+05:30", message: "Nightly pg_dump backup workflow to Google Drive", files: [.github/workflows/backup.yml]}
+  - {sha: 5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d, author: dev-p, date: "2026-09-25T15:15:00+05:30", message: "Send confirmation emails with Resend", files: [api/src/email.ts]}
+  - {sha: 6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e, author: dev-p, date: "2026-09-30T22:22:00+05:30", message: "Load schedule from published Google Sheet CSV every 10 min", files: [api/src/schedule.ts, web/src/data/schedule.json]}
+  - {sha: 7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f, author: kabir-s, date: "2026-10-01T11:30:00+05:30", message: "Add Sentry to web and API", files: [web/sentry.client.config.ts, api/src/sentry.ts]}
+  - {sha: 8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a, author: kabir-s, date: "2026-10-03T13:00:00+05:30", message: "Move API from Render to Railway (Hobby plan)\n\nRender's free tier sleeps after 15 minutes; the first request at the check-in test took ~50 s.", files: [railway.json, render.yaml]}
+  - {sha: 9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b, author: aarav-m, date: "2026-10-04T00:35:00+05:30", message: "Rate-limit /register to 10/min per IP", files: [api/src/register.ts]}
+  - {sha: 0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c, author: aarav-m, date: "2026-10-14T23:50:00+05:30", message: "Replace payment webhooks with order polling", files: [api/src/payments.ts, api/src/webhooks.ts, web/app/pay/return/page.tsx]}
+  - {sha: 1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d, author: sneha-k, date: "2026-10-16T17:40:00+05:30", message: "Scanner: handle camera permission denied", files: [web/app/checkin/page.tsx]}
+  - {sha: 2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e, author: aarav-m, date: "2026-10-20T01:15:00+05:30", message: "WIP: nightly payment reconciliation job", files: [api/src/jobs/reconcile.ts]}
+  - {sha: 3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f, author: dev-p, date: "2026-10-21T20:00:00+05:30", message: "Disable FCM on iOS; send announcements by email + WhatsApp", files: [web/lib/push.ts, api/src/announce.ts]}
+  - {sha: 4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a, author: meera-i, date: "2026-10-27T16:25:00+05:30", message: "Fix typo in registration confirmation email", files: [api/src/email.ts]}
+  - {sha: 5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b, author: kabir-s, date: "2026-10-28T12:10:00+05:30", message: "Bump next to 16.0, update eslint config", files: [package.json, eslint.config.mjs]}
+  - {sha: 6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c, author: sneha-k, date: "2026-11-02T19:00:00+05:30", message: "Leaderboard lite: static page regenerated hourly", files: [web/app/leaderboard/page.tsx]}
+  - {sha: 7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c, author: aarav-m, date: "2026-11-04T23:20:00+05:30", message: "Debounce Pay button (third attempt at the double-registration bug)", files: [web/app/pay/page.tsx]}
+
+pulls:
+  - number: 3
+    title: Firebase Auth
+    author: aarav-m
+    state: closed
+    created_at: "2026-07-14T21:00:00+05:30"
+    merged_at: "2026-07-15T23:35:00+05:30"
+    head: feat/auth
+    body: |
+      Adds login with Firebase Auth.
+
+      - Google sign-in, because every student already has a college Google account.
+      - Email link for faculty and outside participants.
+    comments: []
+
+  - number: 12
+    title: Razorpay payments
+    author: aarav-m
+    state: closed
+    created_at: "2026-08-09T20:00:00+05:30"
+    merged_at: "2026-08-11T00:10:00+05:30"
+    head: feat/payments
+    body: |
+      Checkout with Razorpay (cards + UPI).
+
+      Payment confirmation comes from the `payment.captured` webhook, which marks the
+      registration as paid and sends the ticket email.
+    comments:
+      - {id: 1201, author: sneha-k, date: "2026-08-10T10:20:00+05:30", body: "How do we test the webhook locally?"}
+      - {id: 1202, author: aarav-m, date: "2026-08-10T11:02:00+05:30", body: "ngrok for now. I'll write it up."}
+
+  - number: 21
+    title: Signed QR tickets
+    author: aarav-m
+    state: closed
+    created_at: "2026-09-03T22:00:00+05:30"
+    merged_at: "2026-09-04T01:15:00+05:30"
+    head: feat/qr-tokens
+    body: |
+      QR codes now carry an HMAC-SHA256 signed token instead of the registration id.
+      With plain ids, anyone with a screenshot of a friend's ticket could make their own.
+    comments:
+      - {id: 2101, author: kabir-s, date: "2026-09-04T09:30:00+05:30", body: "Where does TICKET_SIGNING_SECRET live?"}
+      - {id: 2102, author: aarav-m, date: "2026-09-04T10:05:00+05:30", body: "Railway env vars. Please don't rotate it before the fest: every ticket already issued would stop scanning."}
+
+  - number: 22
+    title: Free pass event limit
+    author: aarav-m
+    state: closed
+    created_at: "2026-08-31T21:00:00+05:30"
+    merged_at: "2026-08-31T22:45:00+05:30"
+    head: feat/pass-limit
+    body: |
+      Caps free-pass registrations per student. `MAX_EVENTS_PER_PASS = 5` as agreed.
+    comments: []
+
+  - number: 24
+    title: Admin dashboard
+    author: aarav-m
+    state: closed
+    created_at: "2026-09-18T20:00:00+05:30"
+    merged_at: "2026-09-19T21:45:00+05:30"
+    head: feat/admin
+    body: |
+      `/admin` for the core committee: registrations, payments, check-in counts.
+      Access is the Firebase custom claim `role=core`, set with `scripts/set-claims.js`.
+      You need the Firebase service account key to run the script.
+    comments: []
+
+  - number: 26
+    title: Nightly backups
+    author: aarav-m
+    state: closed
+    created_at: "2026-09-22T17:00:00+05:30"
+    merged_at: "2026-09-22T18:15:00+05:30"
+    head: chore/backups
+    body: |
+      Nightly `pg_dump` to the club Google Drive at 02:00 IST, using a Drive service account
+      (`GDRIVE_SA_KEY` secret). Keeps the last 14 dumps.
+    comments: []
+
+  - number: 27
+    title: Resend for email
+    author: dev-p
+    state: closed
+    created_at: "2026-09-24T19:00:00+05:30"
+    merged_at: "2026-09-25T15:20:00+05:30"
+    head: feat/resend
+    body: |
+      Switches confirmation emails from Gmail SMTP to Resend. Gmail stops at about 500 emails
+      a day, and we expect 3,000+ registrations in the first week.
+    comments:
+      - {id: 2701, author: kabir-s, date: "2026-09-25T09:00:00+05:30", body: "Remember the DNS records for nimbusfest.in, or mail will land in spam."}
+
+  - number: 33
+    title: Schedule from Google Sheet
+    author: dev-p
+    state: closed
+    created_at: "2026-09-29T18:00:00+05:30"
+    merged_at: "2026-09-30T22:30:00+05:30"
+    head: feat/sheet-schedule
+    body: |
+      The schedule now comes from the Google Sheet the events committee already maintains,
+      published to the web as CSV, refreshed every 10 minutes. They can change timings
+      without waiting for a deploy. `schedule.json` stays only as a fallback.
+
+      The sheet is owned by Rahul's account.
+    comments: []
+
+  - number: 36
+    title: Rate limit /register
+    author: aarav-m
+    state: closed
+    created_at: "2026-10-03T23:00:00+05:30"
+    merged_at: "2026-10-04T00:40:00+05:30"
+    head: fix/rate-limit
+    body: |
+      Bot sign-ups on 2 Oct created ~400 fake registrations in an hour. Limits `/register`
+      to 10 requests a minute per IP. Fixes #29.
+    comments: []
+
+  - number: 38
+    title: Poll Razorpay orders instead of webhooks
+    author: aarav-m
+    state: closed
+    created_at: "2026-10-13T22:00:00+05:30"
+    merged_at: "2026-10-14T23:55:00+05:30"
+    head: fix/payment-polling
+    body: |
+      Webhooks kept failing while we tested on campus Wi-Fi: the ngrok tunnel drops and the
+      college firewall blocks inbound requests, so payments stayed "pending".
+
+      Now the return page polls the Razorpay Orders API every 30 seconds for up to 10 minutes.
+      A nightly reconciliation job (PR #42) will catch anything polling misses.
+    comments:
+      - {id: 3801, author: kabir-s, date: "2026-10-14T12:00:00+05:30", body: "Looks good. Can we drop the webhook route completely?"}
+      - {id: 3802, author: aarav-m, date: "2026-10-14T13:15:00+05:30", body: "Yes, removed it in the last commit."}
+
+  - number: 42
+    title: "WIP: nightly payment reconciliation"
+    author: aarav-m
+    state: open
+    draft: true
+    created_at: "2026-10-20T01:20:00+05:30"
+    updated_at: "2026-10-20T01:20:00+05:30"
+    head: feat/reconcile
+    body: |
+      Matches Razorpay settlements to registrations every night.
+
+      - [x] Fetch settlements and match them to orders
+      - [ ] Mark unmatched-but-captured payments as paid
+      - [ ] Email receipts for newly confirmed payments
+
+      Half done. Matching works; marking paid and receipts are not started.
+    comments: []
+
+  - number: 44
+    title: Bump Next.js to 16
+    author: kabir-s
+    state: closed
+    created_at: "2026-10-28T11:00:00+05:30"
+    merged_at: "2026-10-28T12:15:00+05:30"
+    head: chore/next16
+    body: "Upgrades Next.js to 16.0 and moves to the flat ESLint config."
+    comments: []
+
+issues:
+  - number: 17
+    title: Duplicate registration when Pay is tapped twice
+    author: sneha-k
+    state: closed
+    created_at: "2026-08-28T19:00:00+05:30"
+    closed_at: "2026-09-02T12:00:00+05:30"
+    labels: [bug, payments]
+    body: Tapping Pay twice quickly creates two registrations for the same event.
+    comments:
+      - {id: 1701, author: aarav-m, date: "2026-09-02T12:00:00+05:30", body: "Disabled the button after the first tap. Closing."}
+
+  - number: 19
+    title: Local setup instructions
+    author: meera-i
+    state: closed
+    created_at: "2026-10-26T18:00:00+05:30"
+    closed_at: "2026-10-27T10:00:00+05:30"
+    labels: [docs]
+    body: The README says "ask Aarav for the values". Which variables do I actually need locally?
+    comments:
+      - id: 1901
+        author: dev-p
+        date: "2026-10-26T18:40:00+05:30"
+        body: |
+          This is what I have in mine:
+          DATABASE_URL=postgres://nimbus_admin:N1mbus-Pg-2026@db.qxkzrmtyfh.supabase.co:5432/postgres
+          NEXT_PUBLIC_API_URL=http://localhost:4000
+      - {id: 1902, author: aarav-m, date: "2026-10-26T19:05:00+05:30", body: "Dev, please don't paste real connection strings in issues. Meera, I'll DM you the rest."}
+
+  - number: 29
+    title: Bot sign-ups flooding registrations
+    author: kabir-s
+    state: closed
+    created_at: "2026-10-02T21:00:00+05:30"
+    closed_at: "2026-10-04T00:40:00+05:30"
+    labels: [security]
+    body: About 400 fake registrations in the last hour, all from a handful of IPs.
+    comments: []
+
+  - number: 31
+    title: iOS PWA push not delivered
+    author: dev-p
+    state: closed
+    created_at: "2026-10-18T20:00:00+05:30"
+    closed_at: "2026-10-21T20:05:00+05:30"
+    labels: [notifications]
+    body: |
+      iOS only delivers web push to PWAs added to the Home Screen. In our test group 2 of 31
+      iPhone users had done that. Proposal: send announcements by email and WhatsApp broadcast,
+      keep FCM for Android.
+    comments: []
+
+  - number: 34
+    title: Duplicate registrations again
+    author: meera-i
+    state: closed
+    created_at: "2026-10-29T15:00:00+05:30"
+    closed_at: "2026-10-30T11:00:00+05:30"
+    labels: [bug, payments]
+    body: Two rows for the same user and event when the network is slow. Same as #17?
+    comments:
+      - {id: 3401, author: aarav-m, date: "2026-10-30T11:00:00+05:30", body: "Added a unique index on (user_id, event_id). Closing for now."}
+
+  - number: 37
+    title: Scanner crashes on Android 9 / Chrome 74
+    author: kabir-s
+    state: open
+    created_at: "2026-11-01T10:00:00+05:30"
+    labels: [bug, checkin]
+    assignees: [sneha-k]
+    body: |
+      Sentry shows `TypeError: BarcodeDetector is not a constructor` on old Android phones.
+      Some gate volunteers have these phones.
+    comments: []
+
+  - number: 39
+    title: Duplicate registration — third time
+    author: sneha-k
+    state: open
+    created_at: "2026-11-03T21:00:00+05:30"
+    labels: [bug, payments, recurring]
+    body: |
+      Still happening when two tabs are open. The unique index stops a second row, but the
+      user gets charged twice and only one registration shows. Third time we've seen this.
+    comments: []
+
+  - number: 40
+    title: Backup workflow failing since 2 Oct
+    author: kabir-s
+    state: open
+    created_at: "2026-10-05T09:00:00+05:30"
+    labels: [infra]
+    body: |
+      The nightly backup has been failing since 2 Oct (Drive returns 401, so the service
+      account key has probably expired). I disabled the workflow on 5 Oct to stop the failure
+      emails. We currently have no backups.
+    comments: []
+
+  - number: 41
+    title: Confirmation emails going to spam
+    author: dev-p
+    state: open
+    created_at: "2026-11-01T18:00:00+05:30"
+    labels: [email]
+    body: |
+      Gmail puts our confirmations in spam. The DKIM record for Resend was never added to
+      nimbusfest.in. Aarav has the GoDaddy login.
+    comments: []
+
+  - number: 43
+    title: Cloudinary usage at 80%
+    author: aarav-m
+    state: open
+    created_at: "2026-11-02T22:00:00+05:30"
+    labels: [infra]
+    body: We've used 80% of the monthly free credits and registrations haven't peaked yet.
+    comments: []
+
+checks:
+  - {id: 9001, name: build, status: completed, conclusion: success, branch: main, sha: 4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a, date: "2026-10-27T16:30:00+05:30"}
+  - {id: 9002, name: build, status: completed, conclusion: failure, branch: main, sha: 5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b, date: "2026-10-28T12:20:00+05:30", summary: "eslint: Cannot find module 'eslint-config-next/core-web-vitals'"}
+  - {id: 9003, name: build, status: completed, conclusion: failure, branch: main, sha: 7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c, date: "2026-11-04T23:25:00+05:30", summary: "eslint: Cannot find module 'eslint-config-next/core-web-vitals'"}

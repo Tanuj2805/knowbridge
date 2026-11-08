@@ -1,0 +1,109 @@
+name: knowbridge
+
+x-api-env: &api-env
+  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-knowbridge}:${POSTGRES_PASSWORD:-knowbridge}@postgres:5432/${POSTGRES_DB:-knowbridge}
+  OPENFGA_API_URL: http://openfga:8080
+  STORAGE_DIR: /data/storage
+  MODEL_CACHE_DIR: /data/models
+  EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-gemini}
+  EMBED_ITEMS_PER_MINUTE: ${EMBED_ITEMS_PER_MINUTE:-90}
+  EMBED_EXTERNAL_MAX_LABEL: ${EMBED_EXTERNAL_MAX_LABEL:-restricted}
+  DATA_DIR: /srv/data
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  GEMINI_MODEL_REASONING: ${GEMINI_MODEL_REASONING:-gemini-3.6-flash}
+  GEMINI_MODEL_FAST: ${GEMINI_MODEL_FAST:-gemini-3.5-flash-lite}
+  GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL:-gemini-embedding-001}
+  EMBEDDING_DIM: ${EMBEDDING_DIM:-768}
+  AUTHZ_BACKEND: ${AUTHZ_BACKEND:-openfga}
+  API_JWT_SECRET: ${API_JWT_SECRET:?set API_JWT_SECRET in .env}
+  DEMO_MODE: ${DEMO_MODE:-true}
+  GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+  SECRETS_KEY: ${SECRETS_KEY:-}
+  JIRA_ALLOW_ANY_HOST: ${JIRA_ALLOW_ANY_HOST:-false}
+  LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+  LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+  LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-knowbridge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-knowbridge}
+      POSTGRES_DB: ${POSTGRES_DB:-knowbridge}
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-knowbridge}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  openfga-migrate:
+    image: openfga/openfga:v1.22.1
+    command: migrate
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://${POSTGRES_USER:-knowbridge}:${POSTGRES_PASSWORD:-knowbridge}@postgres:5432/openfga?sslmode=disable
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  openfga:
+    image: openfga/openfga:v1.22.1
+    command: run
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://${POSTGRES_USER:-knowbridge}:${POSTGRES_PASSWORD:-knowbridge}@postgres:5432/openfga?sslmode=disable
+      OPENFGA_PLAYGROUND_ENABLED: "false"
+      OPENFGA_LOG_FORMAT: json
+    ports: ["${OPENFGA_PORT:-8081}:8080"]
+    depends_on:
+      openfga-migrate: { condition: service_completed_successfully }
+
+  api:
+    build: ./services/api
+    environment: *api-env
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports: ["8000:8000"]
+    volumes: [storage:/data/storage, models:/data/models, ./data:/srv/data:ro]
+    depends_on:
+      postgres: { condition: service_healthy }
+      openfga: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  worker:
+    build: ./services/api
+    environment: *api-env
+    command: python -m app.worker
+    volumes: [storage:/data/storage, models:/data/models, ./data:/srv/data:ro]
+    depends_on:
+      api: { condition: service_healthy }
+
+  web:
+    build: ./apps/web
+    environment:
+      API_URL: http://api:8000
+      API_JWT_SECRET: ${API_JWT_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      AUTH_TRUST_HOST: "true"
+      AUTH_URL: ${WEB_URL:-http://localhost:3000}
+      AUTH_GITHUB_ID: ${AUTH_GITHUB_ID:-}
+      AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET:-}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
+      DEMO_MODE: ${DEMO_MODE:-true}
+    ports: ["3000:3000"]
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  storage:
+  models:  # local embedding model, downloaded once

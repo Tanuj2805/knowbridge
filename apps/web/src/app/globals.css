@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/*
+  KnowBridge design tokens.
+  Direction: a careful editorial notebook. Warm paper, ink, one teal accent.
+  Grades always pair colour with a text label (never colour alone).
+*/
+
+:root {
+  --paper: #f7f4ec;
+  --paper-raised: #fffdf8;
+  --paper-sunk: #efeadf;
+  --ink: #1e1b16;
+  --ink-muted: #5e574b;
+  --ink-faint: #8a8273;
+  --rule: #e3dccd;
+  --rule-strong: #cfc6b3;
+  --accent: #1f5f5b;
+  --accent-hover: #174a47;
+  --accent-soft: #dcebe8;
+  --on-accent: #ffffff;
+  --danger: #9b2c22;
+  --focus: #1f5f5b;
+
+  --grade-verified: #2f6b3a;
+  --grade-verified-bg: #e3efdd;
+  --grade-supported: #24508a;
+  --grade-supported-bg: #e1eaf5;
+  --grade-attested: #5b3d86;
+  --grade-attested-bg: #ece4f4;
+  --grade-inferred: #57534a;
+  --grade-inferred-bg: #ebe7de;
+  --grade-conflicting: #855000;
+  --grade-conflicting-bg: #f8ebcf;
+  --grade-missing: #9b2c22;
+  --grade-missing-bg: #f6deda;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16140f;
+    --paper-raised: #1e1b16;
+    --paper-sunk: #110f0b;
+    --ink: #ece6d8;
+    --ink-muted: #b0a794;
+    --ink-faint: #81796a;
+    --rule: #34302a;
+    --rule-strong: #4a443a;
+    --accent: #78bfb6;
+    --accent-hover: #93d0c8;
+    --accent-soft: #1d3432;
+    --on-accent: #0f1d1c;
+    --danger: #ef8f84;
+    --focus: #78bfb6;
+
+    --grade-verified: #9fd3a6;
+    --grade-verified-bg: #1d2e1f;
+    --grade-supported: #a7c4ec;
+    --grade-supported-bg: #1a2638;
+    --grade-attested: #cdb5ee;
+    --grade-attested-bg: #2a2138;
+    --grade-inferred: #c4bdaf;
+    --grade-inferred-bg: #2a2722;
+    --grade-conflicting: #f2c67a;
+    --grade-conflicting-bg: #35280f;
+    --grade-missing: #f3a197;
+    --grade-missing-bg: #3a1d19;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #16140f;
+  --paper-raised: #1e1b16;
+  --paper-sunk: #110f0b;
+  --ink: #ece6d8;
+  --ink-muted: #b0a794;
+  --ink-faint: #81796a;
+  --rule: #34302a;
+  --rule-strong: #4a443a;
+  --accent: #78bfb6;
+  --accent-hover: #93d0c8;
+  --accent-soft: #1d3432;
+  --on-accent: #0f1d1c;
+  --danger: #ef8f84;
+  --focus: #78bfb6;
+
+  --grade-verified: #9fd3a6;
+  --grade-verified-bg: #1d2e1f;
+  --grade-supported: #a7c4ec;
+  --grade-supported-bg: #1a2638;
+  --grade-attested: #cdb5ee;
+  --grade-attested-bg: #2a2138;
+  --grade-inferred: #c4bdaf;
+  --grade-inferred-bg: #2a2722;
+  --grade-conflicting: #f2c67a;
+  --grade-conflicting-bg: #35280f;
+  --grade-missing: #f3a197;
+  --grade-missing-bg: #3a1d19;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunk: var(--paper-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "ss02";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Long-form reading (handover pack, evidence) */
+.prose-ledger {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

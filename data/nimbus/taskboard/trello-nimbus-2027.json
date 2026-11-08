@@ -1,0 +1,51 @@
+{
+  "id": "66a1f0c2b5e4a1d2c3b4a5f6",
+  "name": "Nimbus 2027",
+  "url": "https://trello.com/b/nImBuS27/nimbus-2027",
+  "members": [
+    {"id": "m-aarav", "fullName": "Aarav Mehta", "username": "aaravm"},
+    {"id": "m-sneha", "fullName": "Sneha Kulkarni", "username": "snehak"},
+    {"id": "m-dev", "fullName": "Dev Patel", "username": "devp"},
+    {"id": "m-kabir", "fullName": "Kabir Singh", "username": "kabirs"},
+    {"id": "m-priya", "fullName": "Priya Nair", "username": "priyan"},
+    {"id": "m-rahul", "fullName": "Rahul Verma", "username": "rahulv"},
+    {"id": "m-meera", "fullName": "Meera Iyer", "username": "meerai"}
+  ],
+  "lists": [
+    {"id": "l-backlog", "name": "Backlog"},
+    {"id": "l-week", "name": "This week"},
+    {"id": "l-doing", "name": "In progress"},
+    {"id": "l-done", "name": "Done"}
+  ],
+  "cards": [
+    {"id": "c01", "name": "Check-in scanner", "idList": "l-done", "idMembers": ["m-dev"], "labels": [{"name": "frontend"}], "desc": "Scanner page for gate volunteers. Reads the signed QR and calls POST /checkin.", "dateLastActivity": "2026-09-12T14:40:00.000Z", "shortUrl": "https://trello.com/c/Nb01chkn"},
+    {"id": "c02", "name": "Early-bird tickets", "idList": "l-done", "idMembers": ["m-aarav"], "labels": [{"name": "payments"}], "desc": "Early bird is ₹199 until 15 Dec, then ₹299. Show a countdown on the pay page.", "dateLastActivity": "2026-10-01T09:00:00.000Z", "shortUrl": "https://trello.com/c/Nb02erly"},
+    {"id": "c03", "name": "Payment reconciliation job", "idList": "l-doing", "idMembers": ["m-aarav"], "labels": [{"name": "payments"}, {"name": "backend"}], "desc": "Nightly job that matches Razorpay settlements to registrations. PR #42.", "due": "2026-11-15T18:30:00.000Z", "dateLastActivity": "2026-10-20T19:50:00.000Z", "shortUrl": "https://trello.com/c/Nb03rcnl"},
+    {"id": "c04", "name": "Sponsor page logos", "idList": "l-week", "idMembers": ["m-sneha"], "labels": [{"name": "frontend"}, {"name": "sponsors"}], "desc": "Zentrix on top (title sponsor), then PrintKaro and CampusBites.", "dateLastActivity": "2026-11-05T12:00:00.000Z", "shortUrl": "https://trello.com/c/Nb04logo"},
+    {"id": "c05", "name": "Leaderboard lite", "idList": "l-done", "idMembers": ["m-sneha"], "labels": [{"name": "frontend"}], "desc": "Static leaderboard page regenerated every hour. Nothing live.", "dateLastActivity": "2026-11-02T13:30:00.000Z", "shortUrl": "https://trello.com/c/Nb05lead"},
+    {"id": "c06", "name": "Domain renewal (nimbusfest.in)", "idList": "l-backlog", "idMembers": [], "labels": [{"name": "infra"}], "desc": "Renews 2 Dec 2026 at GoDaddy. Account is Aarav's personal one.", "due": "2026-12-02T00:00:00.000Z", "dateLastActivity": "2026-10-26T08:00:00.000Z", "shortUrl": "https://trello.com/c/Nb06domn"},
+    {"id": "c07", "name": "Fix spam emails (DKIM)", "idList": "l-week", "idMembers": ["m-dev"], "labels": [{"name": "email"}], "desc": "Add Resend's DKIM record to nimbusfest.in. Needs the GoDaddy login.", "dateLastActivity": "2026-11-01T12:40:00.000Z", "shortUrl": "https://trello.com/c/Nb07dkim"},
+    {"id": "c08", "name": "Move Railway billing to the club card", "idList": "l-backlog", "idMembers": [], "labels": [{"name": "infra"}], "desc": "Railway is on Aarav's card. Must move before he leaves.", "dateLastActivity": "2026-10-26T08:05:00.000Z", "shortUrl": "https://trello.com/c/Nb08rlwy"},
+    {"id": "c09", "name": "Add Meera and Kabir as Firebase owners", "idList": "l-backlog", "idMembers": ["m-aarav"], "labels": [{"name": "infra"}], "desc": "Aarav is the only Owner on the Firebase project right now.", "dateLastActivity": "2026-10-26T08:10:00.000Z", "shortUrl": "https://trello.com/c/Nb09fbow"},
+    {"id": "c10", "name": "Fix backup workflow", "idList": "l-backlog", "idMembers": ["m-kabir"], "labels": [{"name": "infra"}], "desc": "Disabled since 5 Oct. Drive service account key probably expired. See issue #40.", "dateLastActivity": "2026-10-25T15:00:00.000Z", "shortUrl": "https://trello.com/c/Nb10bkup"},
+    {"id": "c11", "name": "Scanner crash on old Android phones", "idList": "l-doing", "idMembers": ["m-sneha"], "labels": [{"name": "frontend"}, {"name": "checkin"}], "desc": "BarcodeDetector missing on Chrome 74. Fall back to the JS decoder. Issue #37.", "dateLastActivity": "2026-11-04T16:00:00.000Z", "shortUrl": "https://trello.com/c/Nb11andr"},
+    {"id": "c12", "name": "Accommodation form", "idList": "l-backlog", "idMembers": ["m-priya"], "labels": [], "closed": true, "desc": "Taken out of the app. We're using a Google Form for accommodation instead.", "dateLastActivity": "2026-09-14T10:00:00.000Z", "shortUrl": "https://trello.com/c/Nb12acmd"},
+    {"id": "c13", "name": "Venue map", "idList": "l-done", "idMembers": ["m-sneha"], "labels": [{"name": "frontend"}], "desc": "SVG map of the campus with event locations.", "dateLastActivity": "2026-09-20T11:00:00.000Z", "shortUrl": "https://trello.com/c/Nb13venu"},
+    {"id": "c14", "name": "Feature freeze", "idList": "l-backlog", "idMembers": ["m-priya"], "labels": [], "desc": "Feature freeze on 5 Jan 2027. Only bug fixes after that.", "due": "2027-01-05T00:00:00.000Z", "dateLastActivity": "2026-10-25T14:00:00.000Z", "shortUrl": "https://trello.com/c/Nb14frez"},
+    {"id": "c15", "name": "Volunteer shift planner", "idList": "l-backlog", "idMembers": ["m-priya"], "labels": [], "desc": "Spreadsheet for gate shifts. Not in the app.", "dateLastActivity": "2026-10-30T10:00:00.000Z", "shortUrl": "https://trello.com/c/Nb15shft"},
+    {"id": "c16", "name": "Duplicate registrations (again)", "idList": "l-doing", "idMembers": ["m-aarav", "m-meera"], "labels": [{"name": "payments"}, {"name": "bug"}], "desc": "Third report. Issues #17, #34, #39. Users charged twice with two tabs open.", "dateLastActivity": "2026-11-04T18:00:00.000Z", "shortUrl": "https://trello.com/c/Nb16dupl"}
+  ],
+  "checklists": [
+    {"idCard": "c03", "name": "Reconciliation", "checkItems": [
+      {"name": "Fetch settlements and match to orders", "state": "complete"},
+      {"name": "Mark captured-but-unmatched payments as paid", "state": "incomplete"},
+      {"name": "Email receipts", "state": "incomplete"}
+    ]}
+  ],
+  "actions": [
+    {"id": "a01", "type": "commentCard", "date": "2026-10-20T19:50:00.000Z", "memberCreator": {"fullName": "Aarav Mehta"}, "data": {"card": {"id": "c03"}, "text": "Blocked on exams. Will finish after 15 Nov, or Meera picks it up."}},
+    {"id": "a02", "type": "commentCard", "date": "2026-11-05T12:00:00.000Z", "memberCreator": {"fullName": "Sneha Kulkarni"}, "data": {"card": {"id": "c04"}, "text": "Still waiting for the Zentrix and PrintKaro logos from Rahul. Page is done otherwise."}},
+    {"id": "a03", "type": "commentCard", "date": "2026-10-26T08:00:00.000Z", "memberCreator": {"fullName": "Kabir Singh"}, "data": {"card": {"id": "c06"}, "text": "Who is renewing this? Nobody is assigned."}},
+    {"id": "a04", "type": "commentCard", "date": "2026-11-04T18:00:00.000Z", "memberCreator": {"fullName": "Meera Iyer"}, "data": {"card": {"id": "c16"}, "text": "I can take this once Aarav shows me the payment flow."}}
+  ]
+}

@@ -1,0 +1,22 @@
+Nimbus payments sync (2026-10-14 18:00 GMT+05:30) - Transcript
+Attendees
+Aarav Mehta, Meera Iyer, Priya Nair, Kabir Singh
+Transcript
+00:00:00
+Priya Nair: Okay, let's start. Main topic is payments, webhooks kept failing during testing.
+Aarav Mehta: Yes. Out of ten test payments today, four never got the webhook. The ngrok tunnel keeps dropping on campus wifi and the college firewall blocks inbound requests anyway.
+Kabir Singh: So what do we do, move the API somewhere public?
+Aarav Mehta: It's already on Railway, the problem is testing. I want to stop depending on webhooks completely. The return page will poll the Razorpay Orders API every 30 seconds for up to ten minutes.
+Priya Nair: And if someone closes the tab before it confirms?
+Aarav Mehta: A nightly reconciliation job matches settlements to orders. That's PR 42, I'll open it this week.
+00:05:00
+Priya Nair: Decision then: no webhooks, polling plus nightly reconciliation. Everyone okay?
+Meera Iyer: Haan theek hai. Reconciliation ka kaam main sambhal lungi once Aarav shows me the flow.
+Aarav Mehta: Good. For testing, the Razorpay dashboard login is with me, password hai RzpDash#2026, don't write it anywhere.
+Kabir Singh: Bhai please, meeting is being transcribed.
+Aarav Mehta: Right, I'll change it tonight.
+Decision: Payments are confirmed by polling the Orders API; webhooks are removed.
+Action items: Aarav opens PR 42 for reconciliation; Meera takes over reconciliation after a walkthrough.
+00:09:30
+Kabir Singh: One more thing, nimbusfest.in renews on 2 December and it's on Aarav's personal GoDaddy account. Who renews it after he leaves?
+Priya Nair: Let's decide that next week.

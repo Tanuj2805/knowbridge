@@ -1,0 +1,6 @@
+Summary,Issue key,Status,Assignee,Due date,Labels,Description,Comment,Comment
+ESP32 telemetry over Wi-Fi,ROV-1,Done,Kunal Shah,2026-09-30,firmware,Send speed and battery data every second,Works at 1 Hz,Tested on campus Wi-Fi
+Motor PID tuning,ROV-2,In Progress,Rohan Das,2026-11-20,firmware,Rover drifts left at full speed,Left motor is weaker,Need new encoder
+Battery mount for Li-ion,ROV-3,To Do,Ananya Gupta,2026-11-10,hardware,Redesign the mount for the heavier Li-ion pack,,
+Competition registration,ROV-4,To Do,,2026-12-15,admin,Register the team for the national rover challenge,Nobody assigned yet,
+Order spare motor driver,ROV-5,Done,Ananya Gupta,2026-10-01,hardware,From Ravi's shop,Delivered,
