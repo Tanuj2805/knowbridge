@@ -2,7 +2,7 @@
 
 import { useActionState, useTransition } from "react";
 import { SubmitButton } from "@/components/submit-button";
-import { Button, ErrorNote, Input, Label, Select } from "@/components/ui";
+import { Button, ErrorNote, Input, Label, RequiredMark, RequiredNote, Select } from "@/components/ui";
 import { ROLE_LABEL, type Role } from "@/lib/types";
 import { removeMember, upsertMember } from "../../actions";
 
@@ -18,16 +18,25 @@ export function MemberForm({ projectId }: { projectId: string }) {
   const [state, action] = useActionState(upsertMember.bind(null, projectId), undefined);
   return (
     <form action={action} className="grid gap-4">
+      <RequiredNote />
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" required>
+          Email
+        </Label>
         <Input id="email" name="email" type="email" required autoComplete="off" />
       </div>
       <div>
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name" hint="Optional">
+          Name
+        </Label>
         <Input id="name" name="name" autoComplete="off" />
       </div>
       <fieldset>
-        <legend className="text-sm font-medium mb-1.5">Roles</legend>
+        <legend className="mb-1.5 text-[14px] font-medium text-ink">
+          Roles
+          <RequiredMark />
+          <span className="ml-1 font-normal text-ink-faint">(at least one)</span>
+        </legend>
         <div className="grid gap-1.5">
           {ROLES.map(({ role, note }) => (
             <label key={role} className="flex items-start gap-2 text-[14px]">
@@ -40,7 +49,7 @@ export function MemberForm({ projectId }: { projectId: string }) {
         </div>
       </fieldset>
       <div>
-        <Label htmlFor="role_template" hint="Shapes what their handover pack focuses on.">
+        <Label htmlFor="role_template" hint="Optional. Shapes what their handover pack focuses on.">
           Handover template
         </Label>
         <Select id="role_template" name="role_template" defaultValue="">
@@ -53,7 +62,9 @@ export function MemberForm({ projectId }: { projectId: string }) {
         </Select>
       </div>
       <fieldset>
-        <legend className="text-sm font-medium mb-1.5">Clearances</legend>
+        <legend className="mb-1.5 text-[14px] font-medium text-ink">
+          Clearances <span className="font-normal text-ink-faint">(optional)</span>
+        </legend>
         <label className="flex items-start gap-2 text-[14px]">
           <input type="checkbox" name="clearances" value="restricted" className="mt-1 accent-[var(--accent)]" />
           <span>

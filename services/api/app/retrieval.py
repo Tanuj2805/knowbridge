@@ -195,6 +195,18 @@ def _group(hits: list[Hit]) -> list[Hit]:
     return out
 
 
+def word_hits(terms: list[str], text: str) -> int:
+    """How many of the query's words a text contains. Longer words also match other forms of
+    themselves by their stem ('exceeds' finds 'excess', 'scores' finds 'score')."""
+    words = set(re.findall(r"[^\W_]{2,}", text.lower()))
+    hits = 0
+    for t in terms:
+        stem = t[: max(4, len(t) - 2)] if len(t) >= 5 else None
+        if t in words or (stem and any(w.startswith(stem) for w in words)):
+            hits += 1
+    return hits
+
+
 def search(
     db: Session,
     p: Principal,

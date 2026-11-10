@@ -1,27 +1,39 @@
-"""Gemini embeddings (multilingual, so Hinglish chat lands near English text)."""
+"""Gemini embeddings (multilingual, so Hinglish chat lands near English text).
+
+Called over REST, not through the SDK: the SDK takes minutes to report a full quota that the API
+reports in half a second, and a search can't wait. Each call tries the key in use, then the
+backup keys (app.llm.with_failover)."""
 
 import logging
 import math
+from functools import lru_cache
 
-from google.genai import errors, types
+import httpx
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from app.config import get_settings
-from app.llm import LLMUnavailable, client
+from app.llm import KeyUnavailable, LLMUnavailable, http_transport, with_failover
 
 log = logging.getLogger(__name__)
 
 BATCH = 50
 MAX_CHARS = 7000  # gemini-embedding-001 reads ~2k tokens; keep well inside
+QUERY_TIMEOUT = 8.0  # seconds a search waits for its question's vector
+DOCUMENT_TIMEOUT = 60.0
+API = "https://generativelanguage.googleapis.com/v1beta"
 
 
 class EmbeddingQuotaExceeded(RuntimeError):
-    """Gemini's per-minute embedding quota is used up; try again in a minute."""
+    """Gemini's per-minute embedding quota is used up on every key; try again in a minute."""
 
 
-def _retryable(e: BaseException) -> bool:
-    # 429 is not retried here: the caller pauses and resumes the job a minute later.
-    return isinstance(e, errors.APIError) and getattr(e, "code", 0) in (500, 502, 503, 504)
+class _ServerError(RuntimeError):
+    pass
+
+
+@lru_cache
+def _http() -> httpx.Client:
+    return httpx.Client(timeout=DOCUMENT_TIMEOUT, transport=http_transport())
 
 
 def _normalise(v: list[float]) -> list[float]:
@@ -30,36 +42,51 @@ def _normalise(v: list[float]) -> list[float]:
     return [x / n for x in v]
 
 
-@retry(retry=retry_if_exception(_retryable), wait=wait_exponential(min=2, max=30), stop=stop_after_attempt(5),
-       reraise=True)
-def _embed_batch(texts: list[str], task: str) -> list[list[float]]:
+def _call(key: str, texts: list[str], task: str, timeout: float) -> list[list[float]]:
     s = get_settings()
+    model = s.gemini_embedding_model
+    body = {"requests": [{"model": f"models/{model}", "content": {"parts": [{"text": t}]}, "taskType": task,
+                          "outputDimensionality": s.embedding_dim} for t in texts]}
+    r = _http().post(f"{API}/models/{model}:batchEmbedContents", headers={"x-goog-api-key": key}, json=body,
+                     timeout=timeout)
+    if r.status_code in (429, 401, 403):
+        raise KeyUnavailable(r.status_code, r.text[:160])
+    if r.status_code >= 500:
+        raise _ServerError(f"{r.status_code} {r.text[:160]}")
+    r.raise_for_status()
+    return [_normalise(e["values"]) for e in r.json()["embeddings"]]
+
+
+def _embed(texts: list[str], task: str, timeout: float) -> list[list[float]]:
     try:
-        res = client().models.embed_content(
-            model=s.gemini_embedding_model,
-            contents=texts,
-            config=types.EmbedContentConfig(task_type=task, output_dimensionality=s.embedding_dim),
-        )
-    except errors.APIError as e:
-        if getattr(e, "code", 0) == 429:
+        return with_failover(lambda key: _call(key, texts, task, timeout))
+    except KeyUnavailable as e:
+        if e.code == 429:
             raise EmbeddingQuotaExceeded(str(e)[:200]) from e
-        raise
-    return [_normalise(list(e.values)) for e in res.embeddings]
+        raise LLMUnavailable(f"No Gemini key was accepted ({e.code}).") from e
+
+
+@retry(retry=retry_if_exception(lambda e: isinstance(e, (_ServerError, httpx.TransportError))),
+       wait=wait_exponential(min=2, max=30), stop=stop_after_attempt(5), reraise=True)
+def _embed_documents_batch(texts: list[str]) -> list[list[float]]:
+    # 429 is not retried here: the caller pauses and resumes the job a minute later.
+    return _embed(texts, "RETRIEVAL_DOCUMENT", DOCUMENT_TIMEOUT)
 
 
 def embed_documents(texts: list[str]) -> list[list[float]]:
     out: list[list[float]] = []
     for i in range(0, len(texts), BATCH):
-        out.extend(_embed_batch([t[:MAX_CHARS] or " " for t in texts[i : i + BATCH]], "RETRIEVAL_DOCUMENT"))
+        out.extend(_embed_documents_batch([t[:MAX_CHARS] or " " for t in texts[i: i + BATCH]]))
     return out
 
 
 def embed_query(text: str) -> list[float] | None:
-    """None when embeddings aren't available, so search falls back to keywords."""
+    """None when embeddings aren't available, so search falls back to keywords. Someone is
+    waiting: one try per key, a few seconds at most."""
     try:
-        return _embed_batch([text[:MAX_CHARS]], "RETRIEVAL_QUERY")[0]
+        return _embed([text[:MAX_CHARS]], "RETRIEVAL_QUERY", QUERY_TIMEOUT)[0]
     except (LLMUnavailable, EmbeddingQuotaExceeded):
         return None
-    except errors.APIError as e:
+    except Exception as e:  # noqa: BLE001 - timeouts, network: search goes on without meaning
         log.warning("query embedding failed: %s", e)
         return None

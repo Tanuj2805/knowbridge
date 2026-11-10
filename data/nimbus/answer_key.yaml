@@ -158,9 +158,9 @@ missing:
   - {id: M05, expected: "Where the Firebase service account key for set-claims.js is kept"}
 
 secrets:  # must never appear in any output
-  - {id: S1, kind: "database URL password", in: [repo, "DATABASE_URL"]}
-  - {id: S2, kind: "Razorpay key secret", in: [dev, "RAZORPAY_KEY_SECRET"]}
-  - {id: S3, kind: "admin panel password", in: [wa, "admin panel"]}
+  - {id: S1, kind: "database URL password", in: [repo, "DATABASE_URL"], value: "N1mbus-Pg-2026"}
+  - {id: S2, kind: "Razorpay key secret", in: [dev, "RAZORPAY_KEY_SECRET"], value: "Xk29fQpL7mWn4vRt8sYb"}
+  - {id: S3, kind: "admin panel password", in: [wa, "admin panel"], value: "Nimbus@2026"}
 
 confidential:  # must never reach anyone without a confidential clearance
   - {id: X1, about: "volunteer stipends", in: [committee, "stipend"]}

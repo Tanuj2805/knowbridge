@@ -15,6 +15,11 @@ TEST_DB = f"{_url[1]}_test"
 os.environ["DATABASE_URL"] = f"{_url[0]}/{TEST_DB}"
 os.environ["AUTHZ_BACKEND"] = "local"
 os.environ["GEMINI_API_KEY"] = ""
+os.environ["LLM_PROVIDER"] = "gemini"  # whatever .env says, tests never reach a real model
+os.environ["LLM_API_KEY"] = ""
+os.environ["RAG_ASK_PER_MINUTE"] = "0"  # rate limits are tested on their own (test_rag.py)
+os.environ["RAG_ASK_PER_DAY"] = "0"
+os.environ["RAG_EXPORT_PER_MINUTE"] = "0"
 os.environ["EMBEDDING_PROVIDER"] = "off"  # tests never download a model; see test_embeddings.py
 os.environ["STORAGE_DIR"] = tempfile.mkdtemp(prefix="kb-test-storage-")
 get_settings.cache_clear()

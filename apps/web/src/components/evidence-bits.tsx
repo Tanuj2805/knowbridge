@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { Fragment } from "react";
 import type { Sensitivity } from "@/lib/types";
 import { cx } from "./ui";
@@ -40,7 +41,7 @@ export function RedactedText({ text, className }: { text: string; className?: st
           <span
             key={i}
             title="Masked by Sentinel before storage. The original value was never kept."
-            className="inline-block rounded-[3px] bg-paper-sunk border border-rule-strong px-1 mx-px font-mono text-[0.78em] text-ink-muted align-baseline"
+            className="mx-px inline-block rounded-md border border-dashed border-rule-strong bg-paper-sunk px-1 align-baseline tabular-nums text-[0.78em] text-ink-muted"
           >
             {MASK_LABEL[part] ?? part.replace(/-/g, " ")} masked
           </span>
@@ -55,20 +56,24 @@ export function RedactedText({ text, className }: { text: string; className?: st
 export function SensitivityTag({ value, quiet }: { value: Sensitivity; quiet?: boolean }) {
   if (value === "team" && quiet) return null;
   const styles: Record<Sensitivity, string> = {
-    team: "text-ink-muted border-rule-strong",
-    restricted: "text-[var(--grade-conflicting)] border-[color:var(--grade-conflicting)]/40 bg-[var(--grade-conflicting-bg)]",
-    confidential: "text-[var(--grade-missing)] border-[color:var(--grade-missing)]/40 bg-[var(--grade-missing-bg)]",
+    team: "bg-paper-sunk text-ink-muted ring-rule",
+    restricted: "bg-[var(--grade-conflicting-bg)] text-[var(--grade-conflicting)] ring-[var(--grade-conflicting)]/25",
+    confidential: "bg-[var(--grade-missing-bg)] text-[var(--grade-missing)] ring-[var(--grade-missing)]/25",
   };
   const label = { team: "Team", restricted: "Restricted", confidential: "Confidential" }[value];
   return (
-    <span className={cx("inline-flex items-center rounded-[4px] border px-1.5 py-px text-[12px] font-medium", styles[value])}>
+    <span className={cx("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[12px] font-medium ring-1 ring-inset", styles[value])}>
+      {value !== "team" && <Lock className="size-3" aria-hidden="true" />}
       {label}
     </span>
   );
 }
 
+/** What kind of item a piece of evidence is (a commit, a message, a meeting…), as a small badge. */
 export function KindTag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">{children}</span>
+    <span className="inline-flex items-center rounded-md bg-paper-sunk px-1.5 py-0.5 text-[11px] font-medium text-ink-muted">
+      {children}
+    </span>
   );
 }

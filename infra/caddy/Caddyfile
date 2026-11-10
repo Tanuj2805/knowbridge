@@ -1,0 +1,18 @@
+# HTTPS for KnowBridge. Caddy gets and renews a free certificate (Let's Encrypt) for $DOMAIN by
+# itself; the domain must point at this server and ports 80 and 443 must be open.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# the walkthrough video and other static files can be cached by browsers
+	@static path /demo/* /_next/static/*
+	header @static Cache-Control "public, max-age=604800"
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy web:3000
+}

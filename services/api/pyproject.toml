@@ -25,6 +25,7 @@ dependencies = [
   "pyyaml>=6.0",
   "tenacity>=9.0",
   "cryptography>=43",
+  "tzdata>=2024.1",  # time zones on Windows and slim images
 ]
 
 [project.optional-dependencies]
@@ -40,6 +41,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["skills/*.md"]  # agent instructions, loaded at run time
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

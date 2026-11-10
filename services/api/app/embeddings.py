@@ -195,7 +195,9 @@ def embedder() -> Embedder | None:
     if s.embedding_provider == "off":
         return None
     if s.embedding_provider == "gemini":
-        if not s.gemini_api_key:
+        from app.llm import gemini_keys
+
+        if not gemini_keys():
             log.warning("EMBEDDING_PROVIDER=gemini but GEMINI_API_KEY is empty; search is keyword-only")
             return None
         return GeminiEmbedder()

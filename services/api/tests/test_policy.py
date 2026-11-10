@@ -51,3 +51,28 @@ def test_actions():
     assert not can_view_ledger(who(Role.successor)) and not can_view_ledger(who(Role.leaver))
     # Publishing is the approver's sign-off; being admin isn't enough.
     assert can_review(who(Role.approver)) and not can_review(who(Role.admin))
+
+
+def test_local_test_sign_in_is_off_unless_enabled(database, monkeypatch):
+    import time
+
+    import jwt
+    from fastapi.testclient import TestClient
+
+    from app.config import get_settings
+    from app.main import app
+
+    def call():
+        now = int(time.time())
+        token = jwt.encode({"sub": "someone@example.com", "provider": "dev", "iss": "knowbridge-web",
+                            "aud": "knowbridge-api", "iat": now, "exp": now + 60}, get_settings().api_jwt_secret,
+                           "HS256")
+        return TestClient(app).get("/me", headers={"Authorization": f"Bearer {token}"})
+
+    monkeypatch.setenv("DEV_LOGIN", "false")
+    get_settings.cache_clear()
+    assert call().status_code == 401
+    monkeypatch.setenv("DEV_LOGIN", "true")
+    get_settings.cache_clear()
+    assert call().status_code == 200
+    get_settings.cache_clear()

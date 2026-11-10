@@ -1,0 +1,389 @@
+WEBVTT
+
+1
+00:00:00.350 --> 00:00:03.817
+Every team has someone who knows the project inside out.
+
+2
+00:00:03.817 --> 00:00:12.855
+When that person leaves, a lot of what they know leaves with them: why things were built a certain way, who owns what, and what is quietly broken.
+
+3
+00:00:12.855 --> 00:00:16.570
+KnowBridge keeps that knowledge, and hands it over properly.
+
+4
+00:00:17.770 --> 00:00:19.863
+It works in six simple steps.
+
+5
+00:00:19.863 --> 00:00:23.184
+One, connect the tools your team already uses.
+
+6
+00:00:23.184 --> 00:00:28.525
+Two, KnowBridge reads everything, and hides passwords and private details.
+
+7
+00:00:28.525 --> 00:00:35.166
+Three, AI agents turn it into clear facts, called claims, each linked to where it came from.
+
+8
+00:00:35.166 --> 00:00:38.053
+Four, a person checks and approves them.
+
+9
+00:00:38.053 --> 00:00:42.023
+Five, the person leaving answers a few short questions.
+
+10
+00:00:42.023 --> 00:00:47.220
+And six, the new owner gets a handover pack, and a chat to ask anything.
+
+11
+00:00:48.420 --> 00:00:51.469
+Before we start, four words you will hear a lot.
+
+12
+00:00:51.469 --> 00:00:58.140
+A source is a place where your team works, like a WhatsApp group, a GitHub repository, or a Trello board.
+
+13
+00:00:58.140 --> 00:01:06.144
+Evidence is one single item from a source, like one chat message, saved exactly as it was written, with who wrote it and when.
+
+14
+00:01:06.144 --> 00:01:13.387
+A claim is one short, clear fact that the AI pulls out of the evidence, like: ticket payments go through Razorpay.
+
+15
+00:01:13.387 --> 00:01:18.151
+Every claim keeps the exact words it came from, so you can always check it.
+
+16
+00:01:18.151 --> 00:01:23.170
+And the claim ledger is the list of all the claims for a project, in one place.
+
+17
+00:01:24.370 --> 00:01:27.704
+Now let's use it for real, from the very start.
+
+18
+00:01:27.704 --> 00:01:32.457
+Our example is Project Nimbus, the web app for a college tech fest.
+
+19
+00:01:32.457 --> 00:01:37.210
+Aarav, the lead developer, is graduating, and Meera will take over.
+
+20
+00:01:37.210 --> 00:01:40.260
+We sign in as Kabir, the club's tech admin.
+
+21
+00:01:41.460 --> 00:01:43.435
+First, we create a project.
+
+22
+00:01:43.435 --> 00:01:49.360
+Click New project, type a name and a short description, and press Create project.
+
+23
+00:01:52.080 --> 00:01:53.744
+Next, we add the people.
+
+24
+00:01:53.744 --> 00:01:55.409
+Each person gets a role.
+
+25
+00:01:55.409 --> 00:01:58.598
+Aarav is leaving, so he gets the Leaving role.
+
+26
+00:01:58.598 --> 00:02:00.193
+Meera gets Taking over.
+
+27
+00:02:00.193 --> 00:02:05.740
+And Priya is the approver, the person who checks everything before it is shared.
+
+28
+00:02:05.740 --> 00:02:08.860
+Roles decide what each person can see and do.
+
+29
+00:02:10.060 --> 00:02:12.295
+Now we connect the team's tools.
+
+30
+00:02:12.295 --> 00:02:13.831
+These are the sources.
+
+31
+00:02:13.831 --> 00:02:16.624
+Click Connect a source, and pick GitHub.
+
+32
+00:02:16.624 --> 00:02:21.931
+Type the repository name, and add a token only if the repository is private.
+
+33
+00:02:21.931 --> 00:02:26.260
+For this demo, we upload a snapshot of the repository instead.
+
+34
+00:02:27.460 --> 00:02:29.615
+Task boards work the same way.
+
+35
+00:02:29.615 --> 00:02:38.519
+If your team uses Jira, choose Connect Jira Cloud, then enter your Jira site, your email, an API token, and the project key.
+
+36
+00:02:38.519 --> 00:02:40.889
+It connects live, and only reads.
+
+37
+00:02:40.889 --> 00:02:45.700
+Our team uses Trello, so we upload the board's export file instead.
+
+38
+00:02:46.900 --> 00:02:51.580
+We add the meeting notes, and the Discord and WhatsApp chats, in the same way.
+
+39
+00:02:51.580 --> 00:02:53.140
+We have sped this part up.
+
+40
+00:02:54.342 --> 00:02:57.730
+KnowBridge now reads each source in the background.
+
+41
+00:02:57.730 --> 00:03:02.246
+Every message, commit, card and paragraph becomes one evidence item.
+
+42
+00:03:02.246 --> 00:03:12.275
+On the way in, a guard called Sentinel hides secrets, like passwords and phone numbers, and labels anything sensitive, so only the right people see it.
+
+43
+00:03:12.275 --> 00:03:14.002
+Here is the Evidence page.
+
+44
+00:03:14.002 --> 00:03:19.182
+Look: a password someone shared in the WhatsApp group has already been hidden.
+
+45
+00:03:20.382 --> 00:03:21.753
+Now the clever part.
+
+46
+00:03:21.753 --> 00:03:26.618
+When we click Build claims, a team of AI agents reads all the evidence.
+
+47
+00:03:26.618 --> 00:03:27.920
+The Scout sorts it.
+
+48
+00:03:27.920 --> 00:03:32.374
+Specialist agents find decisions, owners, dependencies and risks.
+
+49
+00:03:32.374 --> 00:03:35.937
+The Timeline Builder notices when something changed.
+
+50
+00:03:35.937 --> 00:03:41.282
+And the Skeptic checks every claim against its evidence, and gives it a grade.
+
+51
+00:03:42.482 --> 00:03:45.006
+Here they are, working on our project.
+
+52
+00:03:45.006 --> 00:03:46.401
+We have sped this up.
+
+53
+00:03:46.401 --> 00:03:48.792
+Each step shows what that agent did.
+
+54
+00:03:51.690 --> 00:03:55.666
+And this is the result: the claim ledger for Project Nimbus.
+
+55
+00:03:55.666 --> 00:03:57.190
+Each claim has a grade.
+
+56
+00:03:57.190 --> 00:03:59.974
+Verified means two separate sources agree.
+
+57
+00:03:59.974 --> 00:04:02.691
+Supported means one clear source says it.
+
+58
+00:04:02.691 --> 00:04:05.673
+Inferred means the evidence only hints at it.
+
+59
+00:04:05.673 --> 00:04:09.981
+And Conflicting means sources disagree, so someone has to decide.
+
+60
+00:04:09.981 --> 00:04:13.361
+Open any claim to see the exact words it came from.
+
+61
+00:04:13.361 --> 00:04:16.940
+You can also search the ledger with a normal question.
+
+62
+00:04:18.140 --> 00:04:22.375
+Now we start the handover, which means moving Aarav's work to Meera.
+
+63
+00:04:22.375 --> 00:04:27.855
+Pick who is leaving, who is taking over, and who approves, and add the last working day.
+
+64
+00:04:27.855 --> 00:04:30.160
+Then click Prepare the Gap Interview.
+
+65
+00:04:31.360 --> 00:04:42.808
+The Gap Interview is a short list of questions for the person leaving, about things the evidence does not answer: missing owners, unclear decisions, or facts that disagree.
+
+66
+00:04:42.808 --> 00:04:44.672
+The AI writes the questions.
+
+67
+00:04:44.672 --> 00:04:46.070
+This part is sped up.
+
+68
+00:04:47.271 --> 00:04:48.835
+Now we sign in as Aarav.
+
+69
+00:04:48.835 --> 00:04:52.550
+He sees his questions, and answers them in his own words.
+
+70
+00:04:52.550 --> 00:04:57.308
+If he doesn't know, he can skip it, or pass the question to someone else.
+
+71
+00:04:57.308 --> 00:05:02.131
+His answers go straight back into the claim ledger, and update the grades.
+
+72
+00:05:06.981 --> 00:05:08.690
+Next is Priya, the approver.
+
+73
+00:05:08.690 --> 00:05:11.132
+Nothing is shared until she approves it.
+
+74
+00:05:11.132 --> 00:05:15.161
+She approves the claims that are right, and clicks Write the pack.
+
+75
+00:05:18.194 --> 00:05:23.737
+The handover pack is a guide written for the new owner, built only from approved claims.
+
+76
+00:05:23.737 --> 00:05:27.264
+When Priya is happy with it, she publishes it for Meera.
+
+77
+00:05:28.465 --> 00:05:32.258
+Finally, Meera signs in, and her handover pack is ready.
+
+78
+00:05:32.258 --> 00:05:34.562
+It starts with what to read first.
+
+79
+00:05:34.562 --> 00:05:42.691
+Then what she is taking over, the key decisions and why they were made, who owns what, the risks, and a thirty day plan.
+
+80
+00:05:42.691 --> 00:05:45.265
+Every line links back to its evidence.
+
+81
+00:05:46.465 --> 00:05:49.847
+Meera can also just ask questions in the project chat.
+
+82
+00:05:49.847 --> 00:05:51.162
+Here is how it works.
+
+83
+00:05:51.162 --> 00:06:00.620
+It turns her question into numbers that capture its meaning, finds the closest pieces from all the evidence and claims, and gives only those to the AI.
+
+84
+00:06:00.620 --> 00:06:03.815
+The AI must answer from them, and show its sources.
+
+85
+00:06:05.015 --> 00:06:07.329
+Let's ask why the builds are failing.
+
+86
+00:06:07.329 --> 00:06:11.207
+The answer comes with numbered sources she can click to check.
+
+87
+00:06:11.207 --> 00:06:14.835
+And she can ask a follow up question, like who can fix it.
+
+88
+00:06:16.035 --> 00:06:17.849
+The chat is protected too.
+
+89
+00:06:17.849 --> 00:06:21.964
+Layers of guardrails check every question and every answer.
+
+90
+00:06:21.964 --> 00:06:27.824
+Hidden instructions inside messages are removed, and links or secrets never get out.
+
+91
+00:06:27.824 --> 00:06:33.265
+We tested it with eighty five attacks, in seven languages, and nothing leaked.
+
+92
+00:06:34.465 --> 00:06:35.387
+Let's try one.
+
+93
+00:06:35.387 --> 00:06:37.429
+We tell it to ignore its rules.
+
+94
+00:06:37.429 --> 00:06:45.005
+It refuses straight away, and the attempt is saved in the audit log, where every action in the project is recorded.
+
+95
+00:06:46.205 --> 00:06:47.392
+That's KnowBridge.
+
+96
+00:06:47.392 --> 00:06:55.239
+Connect your tools, let the agents find the facts, fill the gaps with a short interview, and hand over with confidence.
+
+97
+00:06:55.239 --> 00:06:57.745
+Nothing gets lost when people move on.

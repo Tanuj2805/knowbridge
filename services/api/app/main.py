@@ -5,11 +5,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
 
-from app import embeddings, logs
+from app import embeddings, llm, logs
 from app.auth import CurrentUser
 from app.config import get_settings
 from app.db.session import engine
-from app.routers import demo, evidence, projects, sources
+from app.routers import demo, evidence, handovers, ledger, projects, rag, sources
 from app.schemas import UserOut
 
 logs.configure()
@@ -28,6 +28,9 @@ app = FastAPI(title="KnowBridge API", version="0.1.0", lifespan=lifespan)
 app.include_router(projects.router)
 app.include_router(sources.router)
 app.include_router(evidence.router)
+app.include_router(ledger.router)
+app.include_router(handovers.router)
+app.include_router(rag.router)
 app.include_router(demo.router)
 
 
@@ -40,7 +43,8 @@ def health() -> dict:
         "ok": True,
         "authz": s.authz_backend,
         "demo_mode": s.demo_mode,
-        "llm_configured": bool(s.gemini_api_key),
+        "llm_configured": llm.configured(),
+        "llm_provider": s.llm_provider,
         "search_model": embeddings.current_model_id(),
     }
 

@@ -9,10 +9,16 @@ from app.auth import DB, CurrentUser, ProjectPrincipal
 from app.db.models import (
     AuditEvent,
     Claim,
+    ClaimStatus,
     EvidenceUnit,
+    GapQuestion,
+    Handover,
     Membership,
     Project,
+    QuestionStatus,
     Role,
+    Run,
+    RunStatus,
     Source,
     User,
 )
@@ -52,8 +58,29 @@ def _summary(db: DB, project: Project, user_id: uuid.UUID) -> ProjectSummary:
         or 0,
         source_count=count(Source, Source.project_id == project.id),
         evidence_count=count(EvidenceUnit, EvidenceUnit.project_id == project.id),
-        claim_count=count(Claim, Claim.project_id == project.id),
+        **_handover_counts(db, project.id),
     )
+
+
+def _handover_counts(db: DB, project_id: uuid.UUID) -> dict:
+    """How far the project is towards a handover, for the overview's checklist."""
+    run_id = db.scalar(select(Run.id).where(Run.project_id == project_id, Run.kind == "reconstruct",
+                                            Run.status == RunStatus.done).order_by(Run.created_at.desc()).limit(1))
+    claims = db.scalar(select(func.count()).select_from(Claim).where(
+        Claim.run_id == run_id, Claim.status != ClaimStatus.rejected, Claim.superseded_by.is_(None))) if run_id else 0
+    handovers = db.scalars(select(Handover).where(Handover.project_id == project_id)).all()
+    still_open = [QuestionStatus.open, QuestionStatus.reassigned]
+    open_by = dict(db.execute(select(GapQuestion.handover_id, func.count()).where(
+        GapQuestion.handover_id.in_([h.id for h in handovers]), GapQuestion.status.in_(still_open))
+        .group_by(GapQuestion.handover_id)).all())
+    asked = set(db.scalars(select(GapQuestion.handover_id).where(
+        GapQuestion.handover_id.in_([h.id for h in handovers])).distinct()))
+    return {
+        "claim_count": claims or 0,
+        "handover_count": len(handovers),
+        "interviewed_count": sum(1 for h in handovers if h.id in asked and not open_by.get(h.id)),
+        "published_count": sum(1 for h in handovers if h.version > 0),
+    }
 
 
 @router.get("", response_model=list[ProjectSummary])

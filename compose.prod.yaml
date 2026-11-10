@@ -1,0 +1,56 @@
+# Production settings, layered on compose.yaml:
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d --build
+#
+# - Only Caddy is reachable from the internet (ports 80 and 443, HTTPS certificates are automatic).
+#   Postgres, OpenFGA, the API and the web app stay on Docker's private network.
+# - Every service restarts on its own after a crash or a server reboot.
+# - Settings come from .env (copy .env.production.example; see docs/DEPLOY-ORACLE.md).
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  postgres:
+    <<: *restart
+    ports: !reset []
+
+  openfga-migrate:
+    restart: "no"
+
+  openfga:
+    <<: *restart
+    ports: !reset []
+
+  # Every setting in .env reaches the API and the worker (AI provider, backup keys, chat model…);
+  # the values set in compose.yaml (database address, storage paths) still take precedence.
+  api:
+    <<: *restart
+    env_file: [.env]
+    ports: !reset []
+
+  worker:
+    <<: *restart
+    env_file: [.env]
+
+  web:
+    <<: *restart
+    ports: !reset []
+    environment:
+      AUTH_URL: ${WEB_URL:?set WEB_URL in .env, e.g. https://knowbridge.duckdns.org}
+      NODE_ENV: production
+
+  caddy:
+    image: caddy:2.10-alpine
+    <<: *restart
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. knowbridge.duckdns.org}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+
+volumes:
+  caddy_data:     # HTTPS certificates: keep this volume
+  caddy_config:

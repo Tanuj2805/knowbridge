@@ -47,6 +47,8 @@ def current_user(
     provider = claims.get("provider", "unknown")
     if provider == "demo" and not get_settings().demo_mode:
         raise HTTPException(status_code=401, detail="Demo sign-in is turned off.")
+    if provider == "dev" and not get_settings().dev_login:
+        raise HTTPException(status_code=401, detail="Local test sign-in is turned off.")
 
     email = str(claims["sub"]).strip().lower()
     user = db.scalar(select(User).where(User.email == email))

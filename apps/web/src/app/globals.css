@@ -1,101 +1,118 @@
 @import "tailwindcss";
 
 /*
-  KnowBridge design tokens.
-  Direction: a careful editorial notebook. Warm paper, ink, one teal accent.
-  Grades always pair colour with a text label (never colour alone).
+  KnowBridge design tokens: "Ocean blue". Soft white ground, deep navy type, one ocean-blue accent for
+  primary actions, the current place and progress; a midnight version for dark mode. Content sits on the
+  page in ruled sections, not in boxes. Grades pair a coloured dot with a word (never colour alone), and
+  no grade shares the accent's blue.
+  Token names are shared by every page: change a value here and the whole app follows.
 */
 
 :root {
-  --paper: #f7f4ec;
-  --paper-raised: #fffdf8;
-  --paper-sunk: #efeadf;
-  --ink: #1e1b16;
-  --ink-muted: #5e574b;
-  --ink-faint: #8a8273;
-  --rule: #e3dccd;
-  --rule-strong: #cfc6b3;
-  --accent: #1f5f5b;
-  --accent-hover: #174a47;
-  --accent-soft: #dcebe8;
+  --paper: #f7f9fc; /* the ground */
+  --paper-raised: #ffffff; /* inputs, menus, the few framed things */
+  --paper-sunk: #eef2f7; /* quiet fills */
+  --ink: #0b1b33;
+  --ink-muted: #42526b;
+  --ink-faint: #65758e;
+  --rule: #e3e8ef;
+  --rule-strong: #cfd7e3;
+  --btn: #2563eb; /* primary buttons */
+  --btn-hover: #1d4ed8;
+  --on-btn: #ffffff;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #dbeafe; /* light sky, for the current place */
   --on-accent: #ffffff;
-  --danger: #9b2c22;
-  --focus: #1f5f5b;
+  --danger: #b91c1c;
+  --focus: #2563eb;
+  --shadow-card: 0 1px 2px rgb(11 27 51 / 0.05);
+  --shadow-lift: 0 12px 28px -14px rgb(11 27 51 / 0.25), 0 2px 6px -2px rgb(11 27 51 / 0.06);
 
-  --grade-verified: #2f6b3a;
-  --grade-verified-bg: #e3efdd;
-  --grade-supported: #24508a;
-  --grade-supported-bg: #e1eaf5;
-  --grade-attested: #5b3d86;
-  --grade-attested-bg: #ece4f4;
-  --grade-inferred: #57534a;
-  --grade-inferred-bg: #ebe7de;
-  --grade-conflicting: #855000;
-  --grade-conflicting-bg: #f8ebcf;
-  --grade-missing: #9b2c22;
-  --grade-missing-bg: #f6deda;
+  --grade-verified: #15803d;
+  --grade-verified-bg: #e9f8ee;
+  --grade-supported: #0e7490;
+  --grade-supported-bg: #e6f6fa;
+  --grade-attested: #9a6700;
+  --grade-attested-bg: #fbf4e0;
+  --grade-inferred: #64748b;
+  --grade-inferred-bg: #eff2f6;
+  --grade-conflicting: #c2410c;
+  --grade-conflicting-bg: #fff1e8;
+  --grade-missing: #b91c1c;
+  --grade-missing-bg: #fdeeee;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #16140f;
-    --paper-raised: #1e1b16;
-    --paper-sunk: #110f0b;
-    --ink: #ece6d8;
-    --ink-muted: #b0a794;
-    --ink-faint: #81796a;
-    --rule: #34302a;
-    --rule-strong: #4a443a;
-    --accent: #78bfb6;
-    --accent-hover: #93d0c8;
-    --accent-soft: #1d3432;
-    --on-accent: #0f1d1c;
-    --danger: #ef8f84;
-    --focus: #78bfb6;
+    --paper: #0a1220;
+    --paper-raised: #0f1a2e;
+    --paper-sunk: #15223a;
+    --ink: #e6edf7;
+    --ink-muted: #a3b1c6;
+    --ink-faint: #7c8ba3;
+    --rule: #1c2a42;
+    --rule-strong: #2a3b57;
+    --btn: #60a5fa;
+    --btn-hover: #93c5fd;
+    --on-btn: #06122a;
+    --accent: #60a5fa;
+    --accent-hover: #93c5fd;
+    --accent-soft: #13254a;
+    --on-accent: #06122a;
+    --danger: #f87171;
+    --focus: #60a5fa;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow-lift: 0 14px 30px -14px rgb(0 0 0 / 0.8);
 
-    --grade-verified: #9fd3a6;
-    --grade-verified-bg: #1d2e1f;
-    --grade-supported: #a7c4ec;
-    --grade-supported-bg: #1a2638;
-    --grade-attested: #cdb5ee;
-    --grade-attested-bg: #2a2138;
-    --grade-inferred: #c4bdaf;
-    --grade-inferred-bg: #2a2722;
-    --grade-conflicting: #f2c67a;
-    --grade-conflicting-bg: #35280f;
-    --grade-missing: #f3a197;
-    --grade-missing-bg: #3a1d19;
+    --grade-verified: #4ade80;
+    --grade-verified-bg: #0f2a1c;
+    --grade-supported: #22d3ee;
+    --grade-supported-bg: #0b2733;
+    --grade-attested: #e0b44a;
+    --grade-attested-bg: #2a2109;
+    --grade-inferred: #94a3b8;
+    --grade-inferred-bg: #18233a;
+    --grade-conflicting: #fb923c;
+    --grade-conflicting-bg: #2e1a0c;
+    --grade-missing: #f87171;
+    --grade-missing-bg: #301417;
   }
 }
 
 :root[data-theme="dark"] {
-  --paper: #16140f;
-  --paper-raised: #1e1b16;
-  --paper-sunk: #110f0b;
-  --ink: #ece6d8;
-  --ink-muted: #b0a794;
-  --ink-faint: #81796a;
-  --rule: #34302a;
-  --rule-strong: #4a443a;
-  --accent: #78bfb6;
-  --accent-hover: #93d0c8;
-  --accent-soft: #1d3432;
-  --on-accent: #0f1d1c;
-  --danger: #ef8f84;
-  --focus: #78bfb6;
+  --paper: #0a1220;
+  --paper-raised: #0f1a2e;
+  --paper-sunk: #15223a;
+  --ink: #e6edf7;
+  --ink-muted: #a3b1c6;
+  --ink-faint: #7c8ba3;
+  --rule: #1c2a42;
+  --rule-strong: #2a3b57;
+  --btn: #60a5fa;
+  --btn-hover: #93c5fd;
+  --on-btn: #06122a;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: #13254a;
+  --on-accent: #06122a;
+  --danger: #f87171;
+  --focus: #60a5fa;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-lift: 0 14px 30px -14px rgb(0 0 0 / 0.8);
 
-  --grade-verified: #9fd3a6;
-  --grade-verified-bg: #1d2e1f;
-  --grade-supported: #a7c4ec;
-  --grade-supported-bg: #1a2638;
-  --grade-attested: #cdb5ee;
-  --grade-attested-bg: #2a2138;
-  --grade-inferred: #c4bdaf;
-  --grade-inferred-bg: #2a2722;
-  --grade-conflicting: #f2c67a;
-  --grade-conflicting-bg: #35280f;
-  --grade-missing: #f3a197;
-  --grade-missing-bg: #3a1d19;
+  --grade-verified: #4ade80;
+  --grade-verified-bg: #0f2a1c;
+  --grade-supported: #22d3ee;
+  --grade-supported-bg: #0b2733;
+  --grade-attested: #e0b44a;
+  --grade-attested-bg: #2a2109;
+  --grade-inferred: #94a3b8;
+  --grade-inferred-bg: #18233a;
+  --grade-conflicting: #fb923c;
+  --grade-conflicting-bg: #2e1a0c;
+  --grade-missing: #f87171;
+  --grade-missing-bg: #301417;
 }
 
 @theme inline {
@@ -107,15 +124,435 @@
   --color-ink-faint: var(--ink-faint);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
+  --color-btn: var(--btn);
+  --color-btn-hover: var(--btn-hover);
+  --color-on-btn: var(--on-btn);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
 
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif; /* one face everywhere, codes included */
+
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+}
+
+/* --- motion ---------------------------------------------------------------------------
+   Strong ease-out for anything entering, kept under 300ms for UI. Nothing animates from
+   nothing (entrances start at 6px and transparent). Constant motion (spinners, shimmer) is linear. */
+
+@theme {
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --animate-rise: kb-rise 0.3s var(--ease-out-strong) both;
+  --animate-fade: kb-fade 0.2s ease-out both;
+  --animate-shimmer: kb-shimmer 1.4s linear infinite;
+  --animate-grow: kb-grow 0.6s var(--ease-out-strong) both;
+  --animate-ping-soft: kb-ping 1.6s var(--ease-out-strong) infinite;
+
+  @keyframes kb-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes kb-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* A light sweep across a progress bar while work is happening. */
+  @keyframes kb-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
+  /* Bars fill from the left the first time they're drawn. */
+  @keyframes kb-grow {
+    from {
+      transform: scaleX(0.02);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  /* A ring that grows out of a "working" or "up next" mark and fades. */
+  @keyframes kb-ping {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    100% {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+}
+
+/* Headings: Plus Jakarta Sans, semibold and a little tighter (bigger sizes tighten further in place). */
+@utility font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+/* Children arrive one after another, 40ms apart (the first eight; the rest arrive with the eighth). */
+@utility stagger {
+  & > * {
+    animation: kb-rise 0.3s var(--ease-out-strong) both;
+  }
+  & > *:nth-child(2) { animation-delay: 40ms; }
+  & > *:nth-child(3) { animation-delay: 80ms; }
+  & > *:nth-child(4) { animation-delay: 120ms; }
+  & > *:nth-child(5) { animation-delay: 160ms; }
+  & > *:nth-child(6) { animation-delay: 200ms; }
+  & > *:nth-child(7) { animation-delay: 240ms; }
+  & > *:nth-child(n + 8) { animation-delay: 280ms; }
+}
+
+/* A linked card that rises 2px under a mouse (never on touch, where hover is a false positive). */
+@utility lift {
+  transition:
+    transform 0.2s var(--ease-out-strong),
+    box-shadow 0.2s var(--ease-out-strong),
+    border-color 0.2s ease;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lift);
+      border-color: var(--rule-strong);
+    }
+  }
+}
+
+/* A modal window: it grows a touch from the centre as it fades in (modals stay centred, not origin-aware). */
+@keyframes kb-dialog {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* The loader: the bridge mark drawing itself, deck first, then the span, then the piers. */
+@keyframes kb-draw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  45%,
+  78% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.kb-loader path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: kb-draw 1.6s var(--ease-out-strong) infinite;
+}
+.kb-loader path:nth-child(2) { animation-delay: 0.12s; }
+.kb-loader path:nth-child(3) { animation-delay: 0.26s; }
+.kb-loader path:nth-child(4) { animation-delay: 0.34s; }
+.kb-loader path:nth-child(5) { animation-delay: 0.42s; }
+
+/* Home page headline: the second line in a blue gradient that drifts slowly, and a soft brush
+   underline that draws itself under the key word once the title has arrived. */
+.kb-gradient-text {
+  background: linear-gradient(90deg, #1d4ed8, #2563eb 35%, #4f6df5 70%, #2563eb);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: kb-gradient-drift 8s ease-in-out infinite alternate;
+}
+:root[data-theme="dark"] .kb-gradient-text {
+  background-image: linear-gradient(90deg, #60a5fa, #93c5fd 35%, #818cf8 70%, #60a5fa);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .kb-gradient-text {
+    background-image: linear-gradient(90deg, #60a5fa, #93c5fd 35%, #818cf8 70%, #60a5fa);
+  }
+}
+@keyframes kb-gradient-drift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+/* The typing caret on the home page title: solid while typing, blinking once it's done. */
+.kb-caret {
+  display: inline-block;
+  width: 0.07em;
+  height: 0.86em;
+  margin-left: 0.04em;
+  vertical-align: -0.06em;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.kb-caret-blink {
+  animation: kb-blink 1.05s steps(2, jump-none) infinite;
+}
+@keyframes kb-blink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.kb-underline {
+  color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.kb-underline path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: kb-draw-once 0.7s var(--ease-out-strong) forwards;
+}
+@keyframes kb-draw-once {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kb-underline path {
+    stroke-dashoffset: 0;
+  }
+  .kb-gradient-text {
+    animation: none;
+  }
+}
+
+/* The home page grid: only its lines glow. */
+/* A wave of glowing lines: the accent grid, shown through a soft band that slides across. */
+@keyframes kb-sweep {
+  from {
+    mask-position: 100% 0;
+  }
+  to {
+    mask-position: 0% 0;
+  }
+}
+.kb-sweep {
+  opacity: 0.55;
+  mask-image: linear-gradient(110deg, transparent 42%, #000 50%, transparent 58%);
+  mask-size: 300% 100%;
+  mask-repeat: no-repeat;
+  animation: kb-sweep 9s linear infinite;
+}
+
+/* Beams of light gliding along the grid lines, across and down. Constant motion, so linear. */
+@keyframes kb-beam-x {
+  from {
+    transform: translateX(-160px);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+@keyframes kb-beam-y {
+  from {
+    transform: translateY(-160px);
+  }
+  to {
+    transform: translateY(110vh);
+  }
+}
+.kb-beam-x,
+.kb-beam-y {
+  position: absolute;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.kb-beam-x {
+  left: 0;
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--accent));
+  animation-name: kb-beam-x;
+}
+.kb-beam-y {
+  top: 0;
+  width: 2px;
+  height: 160px;
+  background: linear-gradient(to bottom, transparent, var(--accent));
+  animation-name: kb-beam-y;
+}
+.kb-beam-x::after,
+.kb-beam-y::after {
+  /* a small bright head on each beam */
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.kb-beam-x::after {
+  right: -1px;
+  top: -1px;
+}
+.kb-beam-y::after {
+  bottom: -1px;
+  left: -1px;
+}
+
+/* The pointer spotlight fades in and out with the pointer. */
+.kb-spot {
+  opacity: var(--spot, 0);
+  transition: opacity 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-beam-x,
+  .kb-beam-y,
+  .kb-sweep,
+  .kb-spot {
+    display: none;
+  }
+}
+
+/* The home page title draws its underline once it has arrived. */
+@keyframes kb-underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Theme toggle. The button shows the current theme: the sun by day, the moon by night. On a switch the
+   old one sets (drops and turns away) and the new one rises in its place. */
+.theme-icon {
+  position: absolute;
+  transition:
+    transform 0.5s var(--ease-out-strong),
+    opacity 0.3s ease;
+}
+.theme-icon-sun {
+  opacity: 1;
+  transform: none;
+}
+.theme-icon-moon {
+  opacity: 0;
+  transform: translateY(16px) rotate(-70deg) scale(0.6);
+}
+:root[data-theme="dark"] .theme-icon-sun {
+  opacity: 0;
+  transform: translateY(16px) rotate(90deg) scale(0.6);
+}
+:root[data-theme="dark"] .theme-icon-moon {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .theme-icon-sun {
+    opacity: 0;
+    transform: translateY(16px) rotate(90deg) scale(0.6);
+  }
+  :root:not([data-theme]) .theme-icon-moon {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The theme switch: the new theme spreads out in a circle from the button (the script animates the
+   clip), so the browser's own cross-fade is turned off. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-group(kb-celestial),
+::view-transition-old(kb-celestial),
+::view-transition-new(kb-celestial) {
+  animation: none;
+}
+
+/* The sun or moon that rises out of the toggle during a switch, drifts down and in, then fades. */
+.kb-celestial {
+  position: fixed;
+  z-index: 100;
+  width: 120px;
+  height: 120px;
+  pointer-events: none;
+  animation: kb-rise-sky 1.25s var(--ease-out-strong) both;
+}
+@keyframes kb-rise-sky {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25) rotate(-30deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(calc(-50% - 70px), calc(-50% + 80px)) scale(1) rotate(0deg);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(calc(-50% - 80px), calc(-50% + 92px)) scale(1.05) rotate(4deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% - 84px), calc(-50% + 98px)) scale(1.15) rotate(6deg);
+  }
+}
+.kb-celestial-light .kb-sun-rays {
+  transform-origin: 60px 60px;
+  animation: kb-spin 1.25s linear both;
+}
+@keyframes kb-spin {
+  to {
+    transform: rotate(120deg);
+  }
+}
+.kb-celestial-dark .kb-star {
+  opacity: 0;
+  animation: kb-twinkle 0.9s ease-in-out 0.25s 2 both;
+}
+@keyframes kb-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Set for a moment while the theme changes, so colours cross-fade instead of snapping. */
+.theme-transition,
+.theme-transition * {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease !important;
 }
 
 html {
@@ -128,8 +565,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "ss02";
-  text-rendering: optimizeLegibility;
+    text-rendering: optimizeLegibility;
 }
 
 ::selection {
@@ -140,21 +576,43 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 6px;
+}
+
+/* A field inside a frame that shows focus itself (the chat composer) needs no second ring. */
+[data-focus-frame] textarea:focus-visible {
+  outline: none;
+}
+
+/* Folded content eases in when opened. */
+details[open] > :not(summary) {
+  animation: kb-rise 0.22s var(--ease-out-strong) both;
+}
+summary {
+  list-style: none;
+}
+summary::-webkit-details-marker {
+  display: none;
 }
 
 /* Long-form reading (handover pack, evidence) */
 .prose-ledger {
-  font-family: var(--font-serif);
-  font-size: 1.0625rem;
-  line-height: 1.65;
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
+/* Less motion means gentler motion, not none: movement stops, fades stay, nothing stays hidden. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+  }
+  .kb-loader path {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }

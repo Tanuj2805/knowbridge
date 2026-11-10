@@ -338,8 +338,19 @@ class Claim(Base):
     sensitivity: Mapped[Sensitivity] = mapped_column(_enum(Sensitivity), default=Sensitivity.team)
     source_changed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_by_agent: Mapped[str] = mapped_column(String(40), default="")
+    # The Skeptic's verdict on the claim as a whole: {"overreach", "reason_supported", "note"}.
+    # Kept so grades can be recomputed in code (e.g. after a Gap Interview answer).
+    skeptic: Mapped[dict] = mapped_column(JSONB, default=dict, server_default="{}")
+    # The human review: who approved, edited or rejected it, and why.
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_note: Mapped[str] = mapped_column(Text, default="", server_default="")
     owner_name: Mapped[str] = mapped_column(String(200), default="")  # for next actions / risks
     due_date: Mapped[date | None] = mapped_column(Date)
+    # Meaning-search vector for "Ask the project" (app/rag.py), and the model that made it:
+    # cleared whenever the wording changes, so it's re-made from the current text.
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM))
+    embedding_model: Mapped[str | None] = mapped_column(String(120), index=True)
     created_at: Mapped[datetime] = _created()
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -405,11 +416,13 @@ class Run(Base):
     llm_calls: Mapped[int] = mapped_column(Integer, default=0)
     tokens_used: Mapped[int] = mapped_column(Integer, default=0)
     started_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    # Progress kept between resumes (which packets each agent has finished, counters).
+    state: Mapped[dict] = mapped_column(JSONB, default=dict)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _created()
 
-    steps: Mapped[list["RunStep"]] = relationship(order_by="RunStep.started_at")
+    steps: Mapped[list["RunStep"]] = relationship(order_by="RunStep.started_at", passive_deletes=True)
 
 
 class RunStep(Base):
@@ -479,6 +492,9 @@ class GapQuestion(Base):
     answer_evidence_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("evidence_units.id", ondelete="SET NULL")
     )
+    # What gap it covers: {"kind": "choose"|"confirm"|"fill", "claims": [ids], "applied": {...}}
+    meta: Mapped[dict] = mapped_column(JSONB, default=dict, server_default="{}")
+    position: Mapped[int] = mapped_column(Integer, default=0)  # order shown to the person answering
     created_at: Mapped[datetime] = _created()
 
 
@@ -538,6 +554,20 @@ class ClaimFlag(Base):
 # --- audit, jobs, app state --------------------------------------------
 
 
+class LlmCache(Base):
+    """Model answers keyed by (model, skill version, prompt). Re-runs over unchanged
+    evidence cost nothing."""
+
+    __tablename__ = "llm_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    agent: Mapped[str] = mapped_column(String(40))
+    model: Mapped[str] = mapped_column(String(80))
+    response: Mapped[dict] = mapped_column(JSONB)
+    tokens_in: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_out: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = _created()
+
+
 class AppState(Base):
     """Small key/value store, e.g. the OpenFGA store id and model hash."""
 
@@ -548,6 +578,8 @@ class AppState(Base):
 
 class AuditEvent(Base):
     __tablename__ = "audit_log"
+    # Rate limits count a person's recent requests here.
+    __table_args__ = (Index("ix_audit_actor_action_at", "actor_id", "action", "at"),)
     id: Mapped[uuid.UUID] = _uuid()
     project_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"), index=True

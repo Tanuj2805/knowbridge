@@ -6,6 +6,8 @@ import Google from "next-auth/providers/google";
 import { personaById } from "@/lib/personas";
 
 export const demoMode = process.env.DEMO_MODE === "true";
+/** Sign in as any email, for trying the app as a teammate on your own machine. Never in production. */
+export const devLogin = process.env.DEV_LOGIN === "true" && process.env.NODE_ENV !== "production";
 
 const providers: Provider[] = [];
 if (process.env.AUTH_GITHUB_ID) providers.push(GitHub);
@@ -20,6 +22,21 @@ if (demoMode) {
         const persona = personaById(String(credentials?.persona ?? ""));
         if (!persona) return null;
         return { id: persona.id, name: persona.name, email: persona.email };
+      },
+    }),
+  );
+}
+
+if (devLogin) {
+  providers.push(
+    Credentials({
+      id: "dev",
+      name: "Local test sign-in",
+      credentials: { email: { type: "email" } },
+      authorize(credentials) {
+        const email = String(credentials?.email ?? "").trim().toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return null;
+        return { id: email, name: email.split("@")[0], email };
       },
     }),
   );

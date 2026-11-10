@@ -61,3 +61,13 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+/** A text response from the API (Markdown, calendar files), as the signed-in user. Server-side only. */
+export async function apiText(path: string): Promise<{ status: number; text: string; type: string }> {
+  const res = await fetch(`${API_URL}${path}`, {
+    cache: "no-store",
+    headers: { Authorization: `Bearer ${await apiToken()}` },
+  });
+  if (res.status === 401) redirect("/signin");
+  return { status: res.status, text: await res.text(), type: res.headers.get("content-type") ?? "text/plain" };
+}
