@@ -36,6 +36,8 @@ class TurnIn(BaseModel):
 class AskIn(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
     approved_only: bool = False
+    # the file open in the editor (extension, MCP): "this file" in the question means it
+    path: str | None = Field(default=None, max_length=500)
     # the chat so far, oldest first (the client keeps it); the last few turns are used
     history: list[TurnIn] = Field(default_factory=list, max_length=40)
 
@@ -115,8 +117,20 @@ def ask(project_id: uuid.UUID, body: AskIn, p: ProjectPrincipal, user: CurrentUs
             continue
         history.append(rag.Turn(t.role, t.content))
 
+    about, facts, pinned = "", "", []
+    if body.path and body.path.strip():
+        from app.routers.editor import file_context
+
+        fc = file_context(db, p, project_id, body.path)
+        about, pinned = fc.path, [c.id for c in fc.claims]
+        facts = (f"{fc.commits} commit(s) in the connected repository changed it: "
+                 + ", ".join(f"{o.name} {round(o.share * 100)}%" for o in fc.owners)
+                 + (f"; the earliest is by {fc.created_by} ({fc.created_at:%d %b %Y})" if fc.created_at else "")
+                 ) if fc.owners else (
+            "No connected repository has commits for this file, so who changed it is not known."
+            if not fc.repo_commits else "No commits in the connected repository touched this path.")
     a = rag.answer(db, p, project, body.question.strip(), approved_only=_approved_only(p, body.approved_only),
-                   history=history)
+                   history=history, about_file=about, file_facts=facts, pinned=pinned)
     notes = a.guard | ({"forged_turns": forged} if forged else {}) | (
         {"invented_ids": a.invented} if a.invented else {})
     audit.record(db, actor_id=user.id, action="rag.ask", object_type="project", object_id=project_id,

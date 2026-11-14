@@ -69,7 +69,8 @@ const SAMPLE_CLAIMS: { grade: Grade; type: string; text: string; quote: string; 
 export default async function Home() {
   const session = await auth();
   const signedIn = !!session?.user;
-  const primary = signedIn ? { href: "/dashboard", label: "Open your dashboard" } : { href: "/signin", label: "Open the demo" };
+  const primary = signedIn ? { href: "/dashboard", label: "Open your dashboard" } : { href: "/signup", label: "Get started" };
+  const demo = signedIn ? primary : { href: "/signin#demo", label: "Open the demo" };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -106,8 +107,8 @@ export default async function Home() {
                 <Link href="/signin" className={cx(buttonClass("quiet"), "hidden sm:inline-flex")}>
                   Sign in
                 </Link>
-                <Link href="/signin" className={buttonClass("primary")}>
-                  Open the demo
+                <Link href="/signup" className={buttonClass("primary")}>
+                  Get started
                 </Link>
               </>
             )}
@@ -143,6 +144,15 @@ export default async function Home() {
               </Link>
               <WatchVideoButton className="h-12 bg-paper/70 px-5 text-[15px] backdrop-blur" />
             </div>
+            {!signedIn && (
+              <p className="mt-4 animate-rise text-[14px] text-ink-muted [animation-delay:200ms]">
+                Or{" "}
+                <Link href="/signin#demo" className="font-medium text-accent underline-offset-2 hover:underline">
+                  try the demo project
+                </Link>{" "}
+                without an account.
+              </p>
+            )}
             <ul className="mt-10 flex animate-rise flex-wrap justify-center gap-x-7 gap-y-2 text-[13px] text-ink-muted [animation-delay:240ms]">
               {["Nine agents, one job each", "Every claim cited", "Nothing shared until a person approves"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
@@ -162,8 +172,9 @@ export default async function Home() {
                 See it work, start to finish.
               </h2>
               <p className="mt-4 text-[16px] leading-relaxed text-ink-muted">
-                A {DEMO_LENGTH} walkthrough in plain English: create a project, connect GitHub, Jira and chats, let the
-                agents build the claims, run the Gap Interview, publish the handover, and ask the chat.
+                An {DEMO_LENGTH} walkthrough in plain English: create a project, connect GitHub, Jira and chats, let the
+                agents build the claims, spot knowledge at risk, run the Gap Interview, publish the handover, catch a
+                source that changed, and ask, in the chat, in VS Code, or through Claude Code with MCP.
               </p>
             </div>
             <DemoVideoSection />
@@ -273,8 +284,8 @@ export default async function Home() {
             <p className="mx-auto mt-5 max-w-xl text-[16px] leading-relaxed text-ink-muted">
               Walk through a whole handover in the Project Nimbus demo, from sources to the successor&apos;s 30-day plan.
             </p>
-            <Link href={primary.href} className={cx(buttonClass("primary"), "group mt-9 h-12 px-6 text-[15px]")}>
-              {primary.label}
+            <Link href={demo.href} className={cx(buttonClass("primary"), "group mt-9 h-12 px-6 text-[15px]")}>
+              {demo.label}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </Link>
           </div>

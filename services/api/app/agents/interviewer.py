@@ -52,6 +52,19 @@ from app.sentinel import content_hash, scan, strictest
 
 log = logging.getLogger(__name__)
 MAX_QUESTIONS = 12
+CAPTURE_KIND = "capture"  # a Risk Radar knowledge capture (app/radar.py): the person isn't leaving
+CAPTURE_GAPS = 6  # weak spots in the area, asked after the capture questions
+
+# What a knowledge capture always asks, and what kind of claim each answer becomes.
+CAPTURE_QUESTIONS = [
+    ("capture_breaks", ClaimType.risk,
+     "If you were away for a month, what in the {area} area would break or stall first, and how would someone fix it?"),
+    ("capture_depends", ClaimType.dependency,
+     "Which accounts, logins, keys or outside contacts for the {area} area depend on you personally?"),
+    ("capture_backup", ClaimType.owner,
+     "Who else could look after the {area} area, and what would they need to learn first?"),
+]
+CAPTURE_TYPES = {kind: ctype for kind, ctype, _ in CAPTURE_QUESTIONS}
 OWNERLESS = {ClaimType.risk, ClaimType.blocker, ClaimType.next_action}
 
 
@@ -165,12 +178,30 @@ def prepare(db: Session, handover_id: uuid.UUID) -> int:
     principal = gatekeeper.principal(db, h.project_id, h.leaver_id)
     ctx = context_for(db, run, principal)
     skill = skills.load("gap_interviewer")
+    capture = h.kind == CAPTURE_KIND
+    scope = h.scope or {}
+    area = scope.get("area_name", "this area")
     with step(db, ctx, "interviewer") as row:
         gaps = find_gaps(db, run, leaver, principal)
+        if capture:  # only the weak spots in the area the radar pointed at
+            in_area = set(scope.get("claim_ids", []))
+            gaps = [g for g in gaps if any(str(c.id) in in_area for c in g.claims)][:CAPTURE_GAPS]
         row.items_in = len(gaps)
         written: dict[str, Asked] = {}
+        first = 1
+        if capture:
+            share = round(100 * float(scope.get("share", 0)))
+            why = (f"{leaver.name} holds about {share}% of what the project records about the {area} area, "
+                   "and nobody else holds much of it.")
+            for n, (kind, _, text) in enumerate(CAPTURE_QUESTIONS, start=1):
+                db.add(GapQuestion(handover_id=h.id, question=text.format(area=area), why_asked=why,
+                                   priority=100 - n, assignee_id=h.leaver_id, position=n,
+                                   meta={"kind": kind, "reason": why, "claims": [], "area": area}))
+            first = len(CAPTURE_QUESTIONS) + 1
         if gaps:
-            prompt = (f"Person answering: {leaver.name} (leaving the project).\n\n"
+            who = (f"{leaver.name} (staying on the project; an early knowledge capture about {area})" if capture
+                   else f"{leaver.name} (leaving the project)")
+            prompt = (f"Person answering: {who}.\n\n"
                       + "\n\n".join(_gap_text(n, g, ctx.source_names) for n, g in enumerate(gaps, start=1)))
             try:
                 out = gateway.generate(db, AskedOut, agent="gap_interviewer", version=skill.version, tier=skill.tier,
@@ -184,13 +215,16 @@ def prepare(db: Session, handover_id: uuid.UUID) -> int:
             question, why = (asked.question.strip(), asked.why.strip()) if asked else _fallback(g)
             db.add(GapQuestion(
                 handover_id=h.id, claim_id=g.claims[0].id, question=question[:1000], why_asked=why[:500],
-                priority=int(g.priority), assignee_id=h.leaver_id, position=n,
+                priority=int(g.priority), assignee_id=h.leaver_id, position=first + n - 1,
                 meta={"kind": g.kind, "reason": g.reason, "claims": [str(c.id) for c in g.claims]},
             ))
         kinds = {k: sum(1 for g in gaps if g.kind == k) for k in ("choose", "confirm", "fill")}
-        row.items_out = len(gaps)
+        row.items_out = len(gaps) + first - 1
         row.summary = (f"Wrote {len(gaps)} questions for {leaver.name}: {kinds['choose']} where sources disagree, "
                        f"{kinds['confirm']} to confirm, {kinds['fill']} to fill in.")
+        if capture:
+            row.summary = (f"Knowledge capture about {area} with {leaver.name}: {first - 1} questions on the area, "
+                           f"plus {len(gaps)} on its weak spots.")
     h.status = HandoverStatus.interviewing
     db.commit()
     return len(gaps)
@@ -284,6 +318,8 @@ def apply_answer(db: Session, question_id: uuid.UUID) -> dict:
     if q is None or q.status != QuestionStatus.answered or meta.get("applied") or not q.answer_evidence_id:
         return {}
     unit = db.get(EvidenceUnit, q.answer_evidence_id)
+    if meta.get("kind") in CAPTURE_TYPES:
+        return _apply_capture(db, q, meta, unit)
     claims = [c for c in (db.get(Claim, uuid.UUID(cid)) for cid in meta.get("claims", [])) if c is not None]
     if not claims:
         return {}
@@ -372,5 +408,59 @@ def apply_answer(db: Session, question_id: uuid.UUID) -> dict:
     q.meta = meta | {"applied": {"verdict": verdict, "effects": effects}}
     audit.record(db, actor_id=None, action="interview.applied", object_type="gap_question", object_id=q.id,
                  project_id=target.project_id, verdict=verdict)
+    db.commit()
+    return q.meta["applied"]
+
+
+# --- knowledge capture answers -------------------------------------------------
+
+
+def _new_claim(db: Session, h: Handover, run_id, ctype: ClaimType, statement: str, area: str, unit: EvidenceUnit,
+               **extra) -> Claim:
+    c = Claim(project_id=h.project_id, run_id=run_id, type=ctype, statement=statement.strip()[:1000],
+              subject=area[:300], valid_from=datetime.now(UTC), created_by_agent="gap_interviewer",
+              sensitivity=unit.sensitivity, skeptic={"from_interview": True, "capture": True}, **extra)
+    db.add(c)
+    db.flush()
+    quote = unit.text[:500]
+    c.evidence.append(ClaimEvidence(evidence_id=unit.id, quote=quote, quote_hash=content_hash(quote),
+                                    stance="supports"))
+    return c
+
+
+def _apply_capture(db: Session, q: GapQuestion, meta: dict, unit: EvidenceUnit) -> dict:
+    """A capture question has no claim to settle: the answer becomes a new claim about the area
+    (a risk, a dependency or a backup owner) cited to the answer, so the grading rules make it Attested."""
+    h = db.get(Handover, q.handover_id)
+    run = latest_run(db, h.project_id)
+    area = meta.get("area") or (h.scope or {}).get("area_name", "")
+    ctype = CAPTURE_TYPES[meta["kind"]]
+    reading = Reading(verdict="adds")
+    try:
+        skill = skills.load("gap_reader")
+        prompt = (f"Question: {q.question}\nKind of gap: fill\n"
+                  f"Claim: (none yet: the answer adds what only this person knows about {area})\n"
+                  f"<evidence id=\"answer\" author=\"{escape(unit.author, quote=True)}\">\n"
+                  f"{guard.fence(unit.text)}\n</evidence>")
+        reading = gateway.generate(db, Reading, agent="gap_reader", version=skill.version, tier=skill.tier,
+                                   system=skill.instructions, prompt=prompt, thinking=skill.thinking).value
+    except (gateway.AgentOutputInvalid, LLMUnavailable) as e:
+        log.warning("knowledge capture: keeping the answer as written (%s)", e)
+    statement = reading.statement.strip() or f"{area}: {unit.text.strip()[:300]} ({unit.author}, knowledge capture)"
+    owner = reading.owner.strip()[:200] or (unit.author if ctype == ClaimType.dependency else "")
+    run_id = run.id if run else None
+    c = _new_claim(db, h, run_id, ctype, statement, area, unit, owner_name=owner, impact=3,
+                   due_date=_date(reading.due), rationale=reading.reason.strip()[:2000])
+    effects = [f"new {ctype.value.replace('_', ' ')}: “{c.statement[:100]}”"]
+    for task in reading.follow_ups[:3]:
+        if task.strip():
+            _new_claim(db, h, run_id, ClaimType.next_action, task, area, unit, impact=2)
+            effects.append(f"next action: “{task.strip()[:100]}”")
+    db.flush()
+    if run_id:
+        regrade(db, db.scalars(select(Claim).where(Claim.run_id == run_id)).all())
+    q.meta = meta | {"applied": {"verdict": "adds", "effects": effects}}
+    audit.record(db, actor_id=None, action="interview.applied", object_type="gap_question", object_id=q.id,
+                 project_id=h.project_id, verdict="capture")
     db.commit()
     return q.meta["applied"]

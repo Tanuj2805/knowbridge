@@ -46,6 +46,9 @@ const SAYS: Record<string, (m: Record<string, unknown>) => string> = {
   "claim.reject": () => "rejected a claim",
   "claim.reopen": () => "reopened a claim for review",
   "claim.flag": () => "flagged a claim in the pack as possibly wrong",
+  "claim.drift": (m) =>
+    `found that a claim's source changed${m.reopened ? " and sent it back for review" : ""}${m.grade ? ` (${String(m.grade).replace("→", " → ")})` : ""}`,
+  "evidence.simulate_change": () => "simulated a change to an evidence item (demo mode)",
   "handover.create": () => "started a handover",
   "interview.start": () => "prepared the Gap Interview",
   "interview.answer": () => "answered a Gap Interview question",
@@ -58,6 +61,13 @@ const SAYS: Record<string, (m: Record<string, unknown>) => string> = {
   "pack.view": (m) => `read the pack${m.version ? ` (version ${m.version})` : ""}`,
   "pack.acknowledge": (m) => `confirmed reading “${m.section ?? "a section"}”`,
   "pack.export": (m) => `exported the pack${m.format ? ` as ${m.format === "ics" ? "a calendar" : m.format}` : ""}`,
+  "radar.view": () => "opened the Risk Radar",
+  "token.create": (m) => `made an editor access token${m.name ? ` (“${m.name}”)` : ""}`,
+  "token.revoke": (m) => `revoked an editor access token${m.name ? ` (“${m.name}”)` : ""}`,
+  "editor.context": (m) => `looked up a file from the editor${m.path ? `: ${m.path}` : ""}`,
+  "editor.claim": () => "opened a claim from the editor",
+  "radar.regroup": () => "asked the Risk Radar to regroup its areas",
+  "radar.capture": (m) => `started a knowledge capture${m.area ? ` about ${m.area}` : ""}${m.person ? ` with ${m.person}` : ""}`,
   "rag.ask": (m) => `asked the project chat${m.question ? `: “${String(m.question).slice(0, 80)}”` : ""}`,
   "rag.export": (m) =>
     m.format === "retrieve" ? "retrieved project context for another model" : "downloaded the project context file",

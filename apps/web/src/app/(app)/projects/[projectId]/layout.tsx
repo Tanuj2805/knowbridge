@@ -25,10 +25,12 @@ export default async function ProjectLayout({ children, params }: LayoutProps<"/
           { href: "/sources", label: "Sources", count: project.source_count },
           { href: "/evidence", label: "Evidence", count: project.evidence_count },
           { href: "/ledger", label: "Claim ledger", count: project.claim_count },
+          { href: "/radar", label: "Risk radar" },
         ] satisfies Tab[])
       : []),
     { href: "/handovers", label: "Handovers", count: project.handover_count },
     { href: "/members", label: "People", count: project.member_count },
+    { href: "/editor", label: "Editor" },
     ...(staff ? ([{ href: "/audit", label: "Audit log" }] satisfies Tab[]) : []),
   ];
 

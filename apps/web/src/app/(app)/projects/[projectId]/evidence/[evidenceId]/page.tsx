@@ -6,8 +6,15 @@ import { KindTag, RedactedText, SensitivityTag } from "@/components/evidence-bit
 import { Avatar, BackLink, Card, Tag, buttonClass, cx } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
-import { EVIDENCE_KIND_LABEL, SOURCE_KIND_LABEL, type EvidenceDetail, type ProjectSummary } from "@/lib/types";
+import {
+  EVIDENCE_KIND_LABEL,
+  SOURCE_KIND_LABEL,
+  type DriftPage,
+  type EvidenceDetail,
+  type ProjectSummary,
+} from "@/lib/types";
 import { Relabel } from "./relabel";
+import { SimulateChange } from "./simulate-change";
 
 export const metadata: Metadata = { title: "Evidence" };
 
@@ -36,6 +43,9 @@ export default async function EvidenceDetailPage({
   }
   const project = await api<ProjectSummary>(`/projects/${projectId}`);
   const admin = project.my_roles.includes("admin");
+  // demo mode lets an admin simulate an edit at the source, to show drift detection
+  const canSimulate =
+    admin && !e.removed && (await api<DriftPage>(`/projects/${projectId}/drift?limit=1`).catch(() => null))?.can_simulate;
   const secrets = e.redactions.filter((r) => r.category === "secret").length;
   const personal = e.redactions.length - secrets;
 
@@ -72,6 +82,11 @@ export default async function EvidenceDetailPage({
               <RedactedText text={e.text} />
             </p>
           </Card>
+          {canSimulate && (
+            <div className="mt-4">
+              <SimulateChange key={e.text} projectId={projectId} evidenceId={e.id} text={e.text} />
+            </div>
+          )}
 
           {e.linked.length > 0 && (
             <section className="mt-8">

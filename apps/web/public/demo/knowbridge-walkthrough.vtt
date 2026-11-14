@@ -89,301 +89,505 @@ First, we create a project.
 Click New project, type a name and a short description, and press Create project.
 
 23
-00:01:52.080 --> 00:01:53.744
+00:01:50.560 --> 00:01:52.224
 Next, we add the people.
 
 24
-00:01:53.744 --> 00:01:55.409
+00:01:52.224 --> 00:01:53.888
 Each person gets a role.
 
 25
-00:01:55.409 --> 00:01:58.598
+00:01:53.888 --> 00:01:57.078
 Aarav is leaving, so he gets the Leaving role.
 
 26
-00:01:58.598 --> 00:02:00.193
+00:01:57.078 --> 00:01:58.673
 Meera gets Taking over.
 
 27
-00:02:00.193 --> 00:02:05.740
+00:01:58.673 --> 00:02:04.220
 And Priya is the approver, the person who checks everything before it is shared.
 
 28
-00:02:05.740 --> 00:02:08.860
+00:02:04.220 --> 00:02:07.340
 Roles decide what each person can see and do.
 
 29
-00:02:10.060 --> 00:02:12.295
+00:02:08.540 --> 00:02:10.774
 Now we connect the team's tools.
 
 30
-00:02:12.295 --> 00:02:13.831
+00:02:10.774 --> 00:02:12.311
 These are the sources.
 
 31
-00:02:13.831 --> 00:02:16.624
+00:02:12.311 --> 00:02:15.104
 Click Connect a source, and pick GitHub.
 
 32
-00:02:16.624 --> 00:02:21.931
+00:02:15.104 --> 00:02:20.411
 Type the repository name, and add a token only if the repository is private.
 
 33
-00:02:21.931 --> 00:02:26.260
+00:02:20.411 --> 00:02:24.740
 For this demo, we upload a snapshot of the repository instead.
 
 34
-00:02:27.460 --> 00:02:29.615
+00:02:25.940 --> 00:02:28.094
 Task boards work the same way.
 
 35
-00:02:29.615 --> 00:02:38.519
+00:02:28.094 --> 00:02:36.999
 If your team uses Jira, choose Connect Jira Cloud, then enter your Jira site, your email, an API token, and the project key.
 
 36
-00:02:38.519 --> 00:02:40.889
+00:02:36.999 --> 00:02:39.369
 It connects live, and only reads.
 
 37
-00:02:40.889 --> 00:02:45.700
+00:02:39.369 --> 00:02:44.180
 Our team uses Trello, so we upload the board's export file instead.
 
 38
-00:02:46.900 --> 00:02:51.580
+00:02:45.380 --> 00:02:50.060
 We add the meeting notes, and the Discord and WhatsApp chats, in the same way.
 
 39
-00:02:51.580 --> 00:02:53.140
+00:02:50.060 --> 00:02:51.620
 We have sped this part up.
 
 40
-00:02:54.342 --> 00:02:57.730
+00:02:52.820 --> 00:02:56.207
 KnowBridge now reads each source in the background.
 
 41
-00:02:57.730 --> 00:03:02.246
+00:02:56.207 --> 00:03:00.724
 Every message, commit, card and paragraph becomes one evidence item.
 
 42
-00:03:02.246 --> 00:03:12.275
+00:03:00.724 --> 00:03:10.753
 On the way in, a guard called Sentinel hides secrets, like passwords and phone numbers, and labels anything sensitive, so only the right people see it.
 
 43
-00:03:12.275 --> 00:03:14.002
+00:03:10.753 --> 00:03:12.479
 Here is the Evidence page.
 
 44
-00:03:14.002 --> 00:03:19.182
+00:03:12.479 --> 00:03:17.660
 Look: a password someone shared in the WhatsApp group has already been hidden.
 
 45
-00:03:20.382 --> 00:03:21.753
+00:03:18.860 --> 00:03:20.230
 Now the clever part.
 
 46
-00:03:21.753 --> 00:03:26.618
+00:03:20.230 --> 00:03:25.096
 When we click Build claims, a team of AI agents reads all the evidence.
 
 47
-00:03:26.618 --> 00:03:27.920
+00:03:25.096 --> 00:03:26.398
 The Scout sorts it.
 
 48
-00:03:27.920 --> 00:03:32.374
+00:03:26.398 --> 00:03:30.852
 Specialist agents find decisions, owners, dependencies and risks.
 
 49
-00:03:32.374 --> 00:03:35.937
+00:03:30.852 --> 00:03:34.415
 The Timeline Builder notices when something changed.
 
 50
-00:03:35.937 --> 00:03:41.282
+00:03:34.415 --> 00:03:39.760
 And the Skeptic checks every claim against its evidence, and gives it a grade.
 
 51
-00:03:42.482 --> 00:03:45.006
+00:03:40.960 --> 00:03:43.484
 Here they are, working on our project.
 
 52
-00:03:45.006 --> 00:03:46.401
+00:03:43.484 --> 00:03:44.879
 We have sped this up.
 
 53
-00:03:46.401 --> 00:03:48.792
+00:03:44.879 --> 00:03:47.270
 Each step shows what that agent did.
 
 54
-00:03:51.690 --> 00:03:55.666
+00:03:49.754 --> 00:03:53.730
 And this is the result: the claim ledger for Project Nimbus.
 
 55
-00:03:55.666 --> 00:03:57.190
+00:03:53.730 --> 00:03:55.254
 Each claim has a grade.
 
 56
-00:03:57.190 --> 00:03:59.974
+00:03:55.254 --> 00:03:58.038
 Verified means two separate sources agree.
 
 57
-00:03:59.974 --> 00:04:02.691
+00:03:58.038 --> 00:04:00.755
 Supported means one clear source says it.
 
 58
-00:04:02.691 --> 00:04:05.673
+00:04:00.755 --> 00:04:03.737
 Inferred means the evidence only hints at it.
 
 59
-00:04:05.673 --> 00:04:09.981
+00:04:03.737 --> 00:04:08.045
 And Conflicting means sources disagree, so someone has to decide.
 
 60
-00:04:09.981 --> 00:04:13.361
+00:04:08.045 --> 00:04:11.425
 Open any claim to see the exact words it came from.
 
 61
-00:04:13.361 --> 00:04:16.940
+00:04:11.425 --> 00:04:15.004
 You can also search the ledger with a normal question.
 
 62
-00:04:18.140 --> 00:04:22.375
-Now we start the handover, which means moving Aarav's work to Meera.
+00:04:16.204 --> 00:04:19.987
+Before anyone leaves, it helps to know where the danger is.
 
 63
-00:04:22.375 --> 00:04:27.855
-Pick who is leaving, who is taking over, and who approves, and add the last working day.
+00:04:19.987 --> 00:04:28.515
+The Risk Radar looks at three things for every part of the project: who wrote the code, who owns the tickets, and who talks about it.
 
 64
-00:04:27.855 --> 00:04:30.160
-Then click Prepare the Gap Interview.
+00:04:28.515 --> 00:04:35.120
+If one person holds almost all the knowledge about an area, and nobody else does, that area is at risk.
 
 65
-00:04:31.360 --> 00:04:42.808
-The Gap Interview is a short list of questions for the person leaving, about things the evidence does not answer: missing owners, unclear decisions, or facts that disagree.
+00:04:35.120 --> 00:04:37.749
+The AI only groups the claims into areas.
 
 66
-00:04:42.808 --> 00:04:44.672
-The AI writes the questions.
+00:04:37.749 --> 00:04:42.174
+The scores are worked out by plain code, so they are always the same.
 
 67
-00:04:44.672 --> 00:04:46.070
-This part is sped up.
+00:04:43.374 --> 00:04:45.949
+Here is the Risk Radar for our project.
 
 68
-00:04:47.271 --> 00:04:48.835
-Now we sign in as Aarav.
+00:04:45.949 --> 00:04:50.440
+At the top, it shows what would happen if each person left tomorrow.
 
 69
-00:04:48.835 --> 00:04:52.550
-He sees his questions, and answers them in his own words.
+00:04:50.440 --> 00:04:56.714
+Below is the knowledge map: every area of the project, and how much each person knows about it.
 
 70
-00:04:52.550 --> 00:04:57.308
-If he doesn't know, he can skip it, or pass the question to someone else.
+00:04:56.714 --> 00:04:58.696
+The riskiest areas come first.
 
 71
-00:04:57.308 --> 00:05:02.131
-His answers go straight back into the claim ledger, and update the grades.
+00:04:58.696 --> 00:05:08.074
+And with Capture knowledge, the one person who knows an area answers a few short questions, so that knowledge is saved before anyone needs it.
 
 72
-00:05:06.981 --> 00:05:08.690
-Next is Priya, the approver.
+00:05:09.274 --> 00:05:13.509
+Now we start the handover, which means moving Aarav's work to Meera.
 
 73
-00:05:08.690 --> 00:05:11.132
-Nothing is shared until she approves it.
+00:05:13.509 --> 00:05:18.989
+Pick who is leaving, who is taking over, and who approves, and add the last working day.
 
 74
-00:05:11.132 --> 00:05:15.161
-She approves the claims that are right, and clicks Write the pack.
+00:05:18.989 --> 00:05:21.294
+Then click Prepare the Gap Interview.
 
 75
-00:05:18.194 --> 00:05:23.737
-The handover pack is a guide written for the new owner, built only from approved claims.
+00:05:22.494 --> 00:05:33.942
+The Gap Interview is a short list of questions for the person leaving, about things the evidence does not answer: missing owners, unclear decisions, or facts that disagree.
 
 76
-00:05:23.737 --> 00:05:27.264
-When Priya is happy with it, she publishes it for Meera.
+00:05:33.942 --> 00:05:35.806
+The AI writes the questions.
 
 77
-00:05:28.465 --> 00:05:32.258
-Finally, Meera signs in, and her handover pack is ready.
+00:05:35.806 --> 00:05:37.204
+This part is sped up.
 
 78
-00:05:32.258 --> 00:05:34.562
-It starts with what to read first.
+00:05:38.405 --> 00:05:39.969
+Now we sign in as Aarav.
 
 79
-00:05:34.562 --> 00:05:42.691
-Then what she is taking over, the key decisions and why they were made, who owns what, the risks, and a thirty day plan.
+00:05:39.969 --> 00:05:43.684
+He sees his questions, and answers them in his own words.
 
 80
-00:05:42.691 --> 00:05:45.265
-Every line links back to its evidence.
+00:05:43.684 --> 00:05:48.442
+If he doesn't know, he can skip it, or pass the question to someone else.
 
 81
-00:05:46.465 --> 00:05:49.847
-Meera can also just ask questions in the project chat.
+00:05:48.442 --> 00:05:53.265
+His answers go straight back into the claim ledger, and update the grades.
 
 82
-00:05:49.847 --> 00:05:51.162
-Here is how it works.
+00:05:54.465 --> 00:05:56.174
+Next is Priya, the approver.
 
 83
-00:05:51.162 --> 00:06:00.620
-It turns her question into numbers that capture its meaning, finds the closest pieces from all the evidence and claims, and gives only those to the AI.
+00:05:56.174 --> 00:05:58.616
+Nothing is shared until she approves it.
 
 84
-00:06:00.620 --> 00:06:03.815
-The AI must answer from them, and show its sources.
+00:05:58.616 --> 00:06:02.645
+She approves the claims that are right, and clicks Write the pack.
 
 85
-00:06:05.015 --> 00:06:07.329
-Let's ask why the builds are failing.
+00:06:04.637 --> 00:06:10.180
+The handover pack is a guide written for the new owner, built only from approved claims.
 
 86
-00:06:07.329 --> 00:06:11.207
-The answer comes with numbered sources she can click to check.
+00:06:10.180 --> 00:06:13.707
+When Priya is happy with it, she publishes it for Meera.
 
 87
-00:06:11.207 --> 00:06:14.835
-And she can ask a follow up question, like who can fix it.
+00:06:14.909 --> 00:06:18.703
+Finally, Meera signs in, and her handover pack is ready.
 
 88
-00:06:16.035 --> 00:06:17.849
-The chat is protected too.
+00:06:18.703 --> 00:06:21.006
+It starts with what to read first.
 
 89
-00:06:17.849 --> 00:06:21.964
-Layers of guardrails check every question and every answer.
+00:06:21.006 --> 00:06:29.135
+Then what she is taking over, the key decisions and why they were made, who owns what, the risks, and a thirty day plan.
 
 90
-00:06:21.964 --> 00:06:27.824
-Hidden instructions inside messages are removed, and links or secrets never get out.
+00:06:29.135 --> 00:06:31.709
+Every line links back to its evidence.
 
 91
-00:06:27.824 --> 00:06:33.265
-We tested it with eighty five attacks, in seven languages, and nothing leaked.
+00:06:32.909 --> 00:06:36.224
+Projects keep changing after a handover is written.
 
 92
-00:06:34.465 --> 00:06:35.387
-Let's try one.
+00:06:36.224 --> 00:06:40.059
+So KnowBridge reads the team's tools again every few hours.
 
 93
-00:06:35.387 --> 00:06:37.429
-We tell it to ignore its rules.
+00:06:40.059 --> 00:06:46.819
+When something a claim quotes is edited or deleted, it first checks if the quoted words are still there.
 
 94
-00:06:37.429 --> 00:06:45.005
-It refuses straight away, and the attempt is saved in the audit log, where every action in the project is recorded.
+00:06:46.819 --> 00:06:50.069
+If they are, nothing changes, and no AI is needed.
 
 95
-00:06:46.205 --> 00:06:47.392
-That's KnowBridge.
+00:06:50.069 --> 00:06:53.904
+If the words changed, the Skeptic reads the new text again.
 
 96
-00:06:47.392 --> 00:06:55.239
-Connect your tools, let the agents find the facts, fill the gaps with a short interview, and hand over with confidence.
+00:06:53.904 --> 00:07:00.339
+If the claim no longer holds, it goes back to the approver, and the new owner is told what changed.
 
 97
-00:06:55.239 --> 00:06:57.745
+00:07:01.581 --> 00:07:02.463
+Let's try it.
+
+98
+00:07:02.463 --> 00:07:07.212
+Imagine a teammate edits an old chat message, and reverses a decision.
+
+99
+00:07:07.212 --> 00:07:10.332
+In demo mode, we can make that change by hand.
+
+100
+00:07:10.332 --> 00:07:15.691
+We open the message one of the approved claims came from, and change its words.
+
+101
+00:07:16.891 --> 00:07:20.523
+A few seconds later, the Skeptic has read the new text.
+
+102
+00:07:20.523 --> 00:07:24.881
+The claim is now marked as contradicted, and it is back in review.
+
+103
+00:07:24.881 --> 00:07:29.503
+Opening it shows exactly what changed, the old words and the new ones.
+
+104
+00:07:29.503 --> 00:07:35.181
+And in Meera's handover pack, that line now says: changed since this pack was written.
+
+105
+00:07:36.381 --> 00:07:39.763
+Meera can also just ask questions in the project chat.
+
+106
+00:07:39.763 --> 00:07:41.079
+Here is how it works.
+
+107
+00:07:41.079 --> 00:07:50.537
+It turns her question into numbers that capture its meaning, finds the closest pieces from all the evidence and claims, and gives only those to the AI.
+
+108
+00:07:50.537 --> 00:07:53.731
+The AI must answer from them, and show its sources.
+
+109
+00:07:54.931 --> 00:07:57.245
+Let's ask why the builds are failing.
+
+110
+00:07:57.245 --> 00:08:01.123
+The answer comes with numbered sources she can click to check.
+
+111
+00:08:01.123 --> 00:08:04.751
+And she can ask a follow up question, like who can fix it.
+
+112
+00:08:05.951 --> 00:08:10.042
+Developers spend their day in a code editor, not on a website.
+
+113
+00:08:10.042 --> 00:08:12.418
+So KnowBridge also comes to VS Code.
+
+114
+00:08:12.418 --> 00:08:19.413
+Open any file, and a panel shows who changed it, who created it, and the decisions and risks linked to it.
+
+115
+00:08:19.413 --> 00:08:23.372
+You can ask the project chat about the file you are reading.
+
+116
+00:08:23.372 --> 00:08:29.971
+And AI coding assistants, like Copilot or Claude, can read the same knowledge through an MCP server.
+
+117
+00:08:31.171 --> 00:08:35.817
+To connect your editor, open the Editor tab, and make an access token.
+
+118
+00:08:35.817 --> 00:08:41.525
+It can only read, it opens only this one project, and it can be cancelled at any time.
+
+119
+00:08:41.525 --> 00:08:47.631
+Then install the extension, paste the token, and the panel fills in for every file you open.
+
+120
+00:08:48.832 --> 00:08:51.484
+Now let's see it for real, in VS Code.
+
+121
+00:08:51.484 --> 00:08:53.647
+Meera opens the project's code.
+
+122
+00:08:53.647 --> 00:08:59.997
+She installs the KnowBridge extension from the file she downloaded, with Install from VSIX.
+
+123
+00:08:59.997 --> 00:09:01.602
+It takes a few seconds.
+
+124
+00:09:02.802 --> 00:09:05.095
+Then she runs KnowBridge: Connect.
+
+125
+00:09:05.095 --> 00:09:09.074
+She types the website address, and pastes her access token.
+
+126
+00:09:09.074 --> 00:09:12.176
+VS Code keeps the token in its secure storage.
+
+127
+00:09:12.176 --> 00:09:16.222
+KnowBridge is now connected to the Nimbus project, as Meera.
+
+128
+00:09:17.422 --> 00:09:19.763
+She opens a file, webhooks dot ts.
+
+129
+00:09:19.763 --> 00:09:26.303
+The KnowBridge panel shows who changed it and who created it, straight from the GitHub history.
+
+130
+00:09:26.303 --> 00:09:34.152
+Below are the owners, decisions and risks linked to this file, each with its grade, and a reason why it is linked.
+
+131
+00:09:35.356 --> 00:09:40.345
+Now she asks about the file she is reading: who should I talk to about this file?
+
+132
+00:09:40.345 --> 00:09:45.827
+The answer comes only from the project's own record, with numbered sources she can check.
+
+133
+00:09:45.827 --> 00:09:46.566
+No guessing.
+
+134
+00:09:47.766 --> 00:09:54.127
+KnowBridge also works with AI coding assistants, through MCP, the Model Context Protocol.
+
+135
+00:09:54.127 --> 00:10:03.776
+In the terminal, one command adds the KnowBridge MCP server to Claude Code: the server file, the website address, and the access token.
+
+136
+00:10:04.976 --> 00:10:10.939
+Now we start Claude Code, and ask in plain words: who should I talk to about the webhooks file?
+
+137
+00:10:10.939 --> 00:10:20.670
+Claude calls KnowBridge's tools, reads the project's checked facts, and answers with who owns it, the evidence behind it, and anything that doesn't add up.
+
+138
+00:10:20.670 --> 00:10:23.746
+The same knowledge, wherever the developer works.
+
+139
+00:10:24.931 --> 00:10:26.745
+The chat is protected too.
+
+140
+00:10:26.745 --> 00:10:30.861
+Layers of guardrails check every question and every answer.
+
+141
+00:10:30.861 --> 00:10:36.720
+Hidden instructions inside messages are removed, and links or secrets never get out.
+
+142
+00:10:36.720 --> 00:10:42.161
+We tested it with eighty five attacks, in seven languages, and nothing leaked.
+
+143
+00:10:43.361 --> 00:10:44.283
+Let's try one.
+
+144
+00:10:44.283 --> 00:10:46.326
+We tell it to ignore its rules.
+
+145
+00:10:46.326 --> 00:10:53.901
+It refuses straight away, and the attempt is saved in the audit log, where every action in the project is recorded.
+
+146
+00:10:55.101 --> 00:10:56.254
+That's KnowBridge.
+
+147
+00:10:56.254 --> 00:11:07.207
+Connect your tools, let the agents find the facts, see where knowledge is at risk, fill the gaps with a short interview, keep it up to date, and hand over with confidence.
+
+148
+00:11:07.207 --> 00:11:09.641
 Nothing gets lost when people move on.

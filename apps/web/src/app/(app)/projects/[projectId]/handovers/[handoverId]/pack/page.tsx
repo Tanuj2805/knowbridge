@@ -1,7 +1,8 @@
-import { CalendarDays, ChevronRight, Download, Flag, Lock } from "lucide-react";
+import { CalendarDays, ChevronRight, Download, Flag, Lock, RefreshCw } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DriftLabel } from "@/components/drift-bits";
 import { KindTag, RedactedText } from "@/components/evidence-bits";
 import { Avatar, BackLink, EmptyState, Progress, buttonClass, cx } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
@@ -331,6 +332,12 @@ function Item({ block: b, ids, reading }: { block: PackBlock; ids: Ids; reading:
             <RedactedText text={b.statement} />
           </span>
           {facts && <span className="mt-1 block text-[12px] text-ink-faint">{facts}</span>}
+          {b.changed && (
+            <span className="mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-accent">
+              <RefreshCw className="size-3.5" aria-hidden="true" />
+              {b.changed.since_read ? "Changed since you read it" : "Changed since this pack was written"}
+            </span>
+          )}
         </span>
         <ChevronRight
           className="mt-1 size-4 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-90 print:hidden"
@@ -339,6 +346,27 @@ function Item({ block: b, ids, reading }: { block: PackBlock; ids: Ids; reading:
       </summary>
 
       <div className="ml-5 mt-3 grid gap-3 border-l-2 border-rule pl-4">
+        {b.changed && (
+          <div className="rounded-lg bg-accent-soft/60 px-4 py-3 text-[13px] leading-relaxed text-ink">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <DriftLabel outcome={b.changed.outcome} />
+              <span className="text-ink-muted">
+                Its source changed on {formatDate(b.changed.at)}: {b.changed.outcome_text}.
+              </span>
+            </p>
+            {b.changed.after && (
+              <p className="mt-1.5 text-ink">
+                Now it reads: “<RedactedText text={b.changed.after} />”
+              </p>
+            )}
+            {b.changed.note && <p className="mt-1.5 text-ink-muted">{b.changed.note}</p>}
+            <p className="mt-1.5 text-ink-muted">
+              {b.changed.in_review
+                ? "The approver is checking it again; the next version of this pack will have the update."
+                : "KnowBridge re-checked it and it still holds."}
+            </p>
+          </div>
+        )}
         <p className="text-[12px] text-ink-faint">
           <span className="font-semibold" style={{ color: `var(--grade-${b.grade})` }}>
             {GRADE_LABEL[b.grade][0]}

@@ -1,0 +1,25 @@
+{
+  "name": "knowbridge-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KnowBridge MCP server: a project's handover knowledge for AI coding assistants.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "esbuild src/server.ts --bundle --platform=node --format=esm --target=node18 --outfile=dist/knowbridge-mcp.mjs --banner:js=\"#!/usr/bin/env node\"",
+    "check": "tsc --noEmit -p .",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "esbuild": "0.25.10",
+    "typescript": "5.7.2"
+  }
+}

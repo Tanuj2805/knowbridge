@@ -1,0 +1,72 @@
+{
+  "name": "knowbridge",
+  "displayName": "KnowBridge",
+  "description": "Handover knowledge next to your code: who owns the open file, the decisions and risks about it, and answers with sources.",
+  "version": "1.0.0",
+  "publisher": "knowbridge",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "categories": [
+    "Other",
+    "AI"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "knowbridge.connect", "title": "Connect", "category": "KnowBridge" },
+      { "command": "knowbridge.disconnect", "title": "Disconnect", "category": "KnowBridge" },
+      { "command": "knowbridge.ask", "title": "Ask about this project", "category": "KnowBridge" },
+      { "command": "knowbridge.refresh", "title": "Refresh", "category": "KnowBridge", "icon": "$(refresh)" },
+      { "command": "knowbridge.openProject", "title": "Open the project in KnowBridge", "category": "KnowBridge", "icon": "$(link-external)" }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "knowbridge", "title": "KnowBridge", "icon": "media/icon.svg" }
+      ]
+    },
+    "views": {
+      "knowbridge": [
+        { "type": "webview", "id": "knowbridge.file", "name": "This file" }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        { "command": "knowbridge.refresh", "when": "view == knowbridge.file", "group": "navigation" },
+        { "command": "knowbridge.openProject", "when": "view == knowbridge.file", "group": "navigation" }
+      ]
+    },
+    "configuration": {
+      "title": "KnowBridge",
+      "properties": {
+        "knowbridge.url": {
+          "type": "string",
+          "default": "",
+          "description": "Your KnowBridge website, e.g. https://knowbridge.example.com. The access token is kept in VS Code's secret storage, not here."
+        }
+      }
+    },
+    "mcpServerDefinitionProviders": [
+      { "id": "knowbridge.mcp", "label": "KnowBridge" }
+    ]
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "tsc --noEmit -p .",
+    "package": "node build.mjs && vsce package --no-dependencies --allow-missing-repository --out dist/knowbridge-vscode.vsix"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@types/node": "22.10.2",
+    "@types/vscode": "1.101.0",
+    "@vscode/vsce": "3.9.2",
+    "esbuild": "0.25.10",
+    "typescript": "5.7.2",
+    "zod": "3.25.76"
+  }
+}

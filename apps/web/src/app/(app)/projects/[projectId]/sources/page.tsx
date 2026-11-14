@@ -13,11 +13,14 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { BeforeAfter, DriftLabel } from "@/components/drift-bits";
+import { RedactedText } from "@/components/evidence-bits";
 import { EmptyState, PageHeader, Tag } from "@/components/ui";
 import { api } from "@/lib/api";
-import { plural, timeAgo } from "@/lib/format";
+import { formatDate, plural, timeAgo, timeUntil } from "@/lib/format";
 import {
   SOURCE_KIND_LABEL,
+  type DriftPage,
   type EvidenceStats,
   type Member,
   type ProjectSummary,
@@ -59,15 +62,17 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
 
 export default async function SourcesPage({ params }: PageProps<"/projects/[projectId]/sources">) {
   const { projectId } = await params;
-  const [project, sources, members, stats] = await Promise.all([
+  const [project, sources, members, stats, changes] = await Promise.all([
     api<ProjectSummary>(`/projects/${projectId}`),
     api<Source[]>(`/projects/${projectId}/sources`),
     api<Member[]>(`/projects/${projectId}/members`),
     api<EvidenceStats>(`/projects/${projectId}/evidence/stats`),
+    api<DriftPage>(`/projects/${projectId}/drift?limit=8`),
   ]);
   const admin = project.my_roles.includes("admin");
   const names = new Map(members.map((m) => [m.user.id, m.user.name.split(" ")[0]]));
-  const busy = sources.some((s) => s.status === "pending" || s.status === "syncing");
+  const busy = sources.some((s) => s.status === "pending" || s.status === "syncing") || changes.checking > 0;
+  const live = sources.some((s) => s.config.repo || s.config.provider === "jira");
   const items = sources.reduce((n, s) => n + s.item_count, 0);
   const ready = sources.filter((s) => s.status === "ready").length;
 
@@ -154,7 +159,14 @@ export default async function SourcesPage({ params }: PageProps<"/projects/[proj
                   {/* the facts, each with its label */}
                   <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-rule px-5 py-4 sm:grid-cols-4">
                     <Fact label="Items">{s.item_count.toLocaleString("en-IN")}</Fact>
-                    <Fact label="Last synced">{timeAgo(s.last_synced_at)}</Fact>
+                    <Fact label="Last synced">
+                      {timeAgo(s.last_synced_at)}
+                      {s.next_check_at && !working && (
+                        <span className="block text-[12px] font-normal text-ink-faint">
+                          next check {timeUntil(s.next_check_at)}
+                        </span>
+                      )}
+                    </Fact>
                     <Fact label="Who can see it">{who}</Fact>
                     <Fact label="Label">{LABEL[s.default_sensitivity]}</Fact>
                   </dl>
@@ -187,8 +199,76 @@ export default async function SourcesPage({ params }: PageProps<"/projects/[proj
               );
             })}
           </ul>
+
+          <Changes changes={changes} live={live} projectId={projectId} />
         </>
       )}
     </div>
+  );
+}
+
+/** Live sync: what changed at the sources lately, and what it did to the claims quoting it. */
+function Changes({ changes, live, projectId }: { changes: DriftPage; live: boolean; projectId: string }) {
+  const every = changes.sync_every_hours;
+  return (
+    <section aria-labelledby="changes" className="mt-12">
+      <h2 id="changes" className="font-display text-[1.25rem] tracking-[-0.02em] text-ink">
+        What changed at the sources
+      </h2>
+      <p className="mt-1 max-w-3xl text-[14px] leading-relaxed text-ink-muted">
+        {live && every > 0
+          ? `Live sources are checked for changes every ${every} hours, and fully once a day to notice deletions. `
+          : "Uploaded sources are checked again whenever files are added. "}
+        When something a claim quotes is edited or deleted, KnowBridge first looks for the quoted words in the new text;
+        only if they changed does the Skeptic re-read it. Claims it no longer backs go back to review.
+      </p>
+      {(changes.open > 0 || changes.checking > 0) && (
+        <p className="mt-3 text-[14px] text-ink">
+          {changes.open > 0 && (
+            <Link href={`/projects/${projectId}/ledger?review=changed`} className="font-medium text-accent hover:underline">
+              {plural(changes.open, "claim")} to look at again →
+            </Link>
+          )}
+          {changes.checking > 0 && (
+            <span className="ml-3 text-ink-muted">{plural(changes.checking, "change")} being re-checked…</span>
+          )}
+        </p>
+      )}
+
+      {changes.items.length === 0 ? (
+        <p className="mt-4 text-[14px] text-ink-faint">No change has touched a claim yet.</p>
+      ) : (
+        <ol className="mt-4 divide-y divide-rule border-y border-rule">
+          {changes.items.map((d) => (
+            <li key={d.id}>
+              <details className="group py-3.5">
+                <summary className="flex cursor-pointer flex-col gap-1 sm:flex-row sm:items-start sm:gap-4">
+                  <span className="shrink-0 sm:w-36">
+                    <DriftLabel outcome={d.outcome} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[14px] leading-snug text-ink group-hover:text-accent">
+                      <RedactedText text={d.claim_statement} />
+                    </span>
+                    <span className="mt-0.5 block text-[12px] text-ink-faint">
+                      {d.source_name}
+                      {d.evidence_title && !d.source_name.includes(d.evidence_title) && ` · ${d.evidence_title}`} ·{" "}
+                      {formatDate(d.detected_at)}
+                      {d.reopened && " · back for review"}
+                      {d.resolved_by_name && ` · reviewed by ${d.resolved_by_name}`}
+                      {d.simulated && " · simulated"}
+                    </span>
+                  </span>
+                </summary>
+                <div className="mt-3 sm:pl-40">
+                  <BeforeAfter before={d.before} after={d.after} />
+                  {d.note && <p className="mt-2 text-[13px] text-ink-muted">The Skeptic: {d.note}</p>}
+                </div>
+              </details>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }

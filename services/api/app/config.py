@@ -84,6 +84,29 @@ class Settings(BaseSettings):
     demo_mode: bool = True
     # "Sign in as any email" for local testing. The web app also refuses it in production builds.
     dev_login: bool = False
+    # The website's address, for links the editor extension and MCP server show ("open in KnowBridge").
+    web_url: str = "http://localhost:3000"
+    # How long a new personal access token lasts.
+    token_days: int = 90
+    # Live sync: the worker re-reads live sources (GitHub, Jira) this often, looking only at what
+    # changed; 0 turns the schedule off (manual "Check for changes" still works). Once every
+    # `full_sync_hours` the read is a full one, which also notices items deleted at the source.
+    live_sync_hours: float = 6.0
+    full_sync_hours: float = 24.0
+
+    # Email-and-password accounts (alongside the demo personas), confirmed with a code sent by email.
+    password_auth: bool = True
+    # The name in account emails and their sender line.
+    app_name: str = "KnowBridge"
+    # Outgoing email for "confirm your address" and "reset your password". Any SMTP service works
+    # (Gmail with an app password, Resend, Brevo, SendGrid...). Unset: the link is written to the API
+    # log instead, which is fine on your own computer but means nobody receives it on a live site.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_ssl: bool = False  # True for port 465 (SSL from the start); False uses STARTTLS
+    mail_from: str = ""  # e.g. "KnowBridge <no-reply@yourdomain.com>"; defaults to smtp_user
 
     # Encrypts stored connector credentials. Generate with:
     #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

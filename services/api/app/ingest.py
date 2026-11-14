@@ -1,9 +1,10 @@
 """Connect step: Scout reads a source, Sentinel redacts and labels every item,
 and the result is stored as Evidence Units with their access rules.
 
-Re-syncing is safe: unchanged items are skipped, changed items are updated and
-any claim citing them is flagged "source changed", and items that disappeared
-are kept but marked removed (claims citing them are flagged too).
+Re-syncing is safe: unchanged items are skipped, changed items are updated, and
+items that disappeared are kept but marked removed. What a change means for the
+claims citing those items is worked out by `app.drift` (quote check first, then
+the Skeptic re-reads only what really changed).
 """
 
 import logging
@@ -13,12 +14,10 @@ from datetime import UTC, datetime, time, timedelta, timezone
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session
 
-from app import embeddings, gatekeeper, lang, secretbox, storage
+from app import drift, embeddings, gatekeeper, lang, secretbox, storage
 from app.config import get_settings
 from app.connectors import ISSUE_KEY, ConnectorError, RawItem, RetryLater, is_live, read_source
 from app.db.models import (
-    Claim,
-    ClaimEvidence,
     EvidenceUnit,
     Redaction,
     Sensitivity,
@@ -38,6 +37,7 @@ class SyncReport:
         self.added = self.updated = self.unchanged = self.removed = self.skipped = 0
         self.secrets = self.pii = 0
         self.embedded = 0
+        self.drifted = 0  # claims whose evidence changed under them
 
     def summary(self) -> str:
         parts = [f"{self.added} new", f"{self.updated} changed", f"{self.unchanged} unchanged"]
@@ -53,6 +53,9 @@ class SyncReport:
         text = ", ".join(parts) + "."
         if masked:
             text += " Masked " + " and ".join(masked) + "."
+        if self.drifted:
+            text += (f" {self.drifted} claim{'s' if self.drifted != 1 else ''} cite"
+                     f"{'s' if self.drifted == 1 else ''} something that changed: being re-checked.")
         return text
 
 
@@ -71,13 +74,6 @@ def _hint(value: str | None) -> Sensitivity:
         return Sensitivity(value) if value else Sensitivity.team
     except ValueError:
         return Sensitivity.team
-
-
-def _flag_claims(db: Session, evidence_ids: list[uuid.UUID]) -> None:
-    if not evidence_ids:
-        return
-    claim_ids = select(ClaimEvidence.claim_id).where(ClaimEvidence.evidence_id.in_(evidence_ids))
-    db.execute(update(Claim).where(Claim.id.in_(claim_ids)).values(source_changed=True))
 
 
 def sync_source(db: Session, source_id: uuid.UUID, full: bool = False) -> SyncReport:
@@ -146,7 +142,7 @@ def _sync(db: Session, source: Source, report: SyncReport, full: bool) -> None:
     seen: set[str] = set()
     new_units: list[EvidenceUnit] = []
     relabelled: list[tuple[EvidenceUnit, Sensitivity]] = []
-    changed_ids: list[uuid.UUID] = []
+    changed: list[tuple[EvidenceUnit, str, bool]] = []  # (item, what it said before, was it deleted)
 
     for item in items:
         if item.external_id in seen:
@@ -184,7 +180,7 @@ def _sync(db: Session, source: Source, report: SyncReport, full: bool) -> None:
             new_units.append(unit)
             report.added += 1
         else:
-            changed_ids.append(unit.id)
+            changed.append((unit, f"{unit.title}\n{unit.text}", bool(unit.meta.get("removed_at"))))
             if unit.sensitivity != sensitivity:
                 relabelled.append((unit, unit.sensitivity))
             db.query(Redaction).filter(Redaction.evidence_id == unit.id).delete()
@@ -213,9 +209,11 @@ def _sync(db: Session, source: Source, report: SyncReport, full: bool) -> None:
     ]
     for u in gone:
         u.meta = {**u.meta, "removed_at": datetime.now(UTC).isoformat()}
-        changed_ids.append(u.id)
     report.removed = len(gone)
-    _flag_claims(db, changed_ids)
+    db.flush()
+    report.drifted = drift.detect(db, source, changed, gone)
+    if not incremental:  # only a full read notices deletions; the schedule does one daily
+        source.config = {**(source.config or {}), "last_full_sync_at": datetime.now(UTC).isoformat()}
 
     source.status_detail = "Indexing…"
     db.commit()

@@ -15,6 +15,7 @@ TEST_DB = f"{_url[1]}_test"
 os.environ["DATABASE_URL"] = f"{_url[0]}/{TEST_DB}"
 os.environ["AUTHZ_BACKEND"] = "local"
 os.environ["GEMINI_API_KEY"] = ""
+os.environ["GEMINI_API_KEY_BACKUP"] = ""  # .env may hold backup keys; tests never use them
 os.environ["LLM_PROVIDER"] = "gemini"  # whatever .env says, tests never reach a real model
 os.environ["LLM_API_KEY"] = ""
 os.environ["RAG_ASK_PER_MINUTE"] = "0"  # rate limits are tested on their own (test_rag.py)

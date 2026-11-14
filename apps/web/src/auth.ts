@@ -1,17 +1,56 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
-import GitHub from "next-auth/providers/github";
-import Google from "next-auth/providers/google";
+import { accountsApi } from "@/lib/accounts";
 import { personaById } from "@/lib/personas";
 
 export const demoMode = process.env.DEMO_MODE === "true";
 /** Sign in as any email, for trying the app as a teammate on your own machine. Never in production. */
 export const devLogin = process.env.DEV_LOGIN === "true" && process.env.NODE_ENV !== "production";
 
+/** A failed email sign-in, with why (the page shows a message for each): invalid, unverified, locked,
+ * invalid_code_<tries left>, too_many, expired. */
+class PasswordSignin extends CredentialsSignin {
+  constructor(code: string) {
+    super();
+    this.code = code;
+  }
+}
+
+type Account = { id: string; email: string; name: string };
 const providers: Provider[] = [];
-if (process.env.AUTH_GITHUB_ID) providers.push(GitHub);
-if (process.env.AUTH_GOOGLE_ID) providers.push(Google);
+
+// Email and password: the API checks the password (scrypt hash) and that the email was confirmed.
+providers.push(
+  Credentials({
+    id: "password",
+    name: "Email and password",
+    credentials: { email: { type: "email" }, password: { type: "password" } },
+    async authorize(credentials) {
+      const r = await accountsApi<Account>("/auth/login", {
+        email: String(credentials?.email ?? ""),
+        password: String(credentials?.password ?? ""),
+      });
+      if (r.ok) return { id: r.data.id, email: r.data.email, name: r.data.name };
+      throw new PasswordSignin(r.code === "unreachable" ? "unreachable" : r.code || "invalid");
+    },
+  }),
+  // The 6-digit code from the sign-up email: the API confirms the address, and that signs them in.
+  Credentials({
+    id: "email-code",
+    name: "Email code",
+    credentials: { email: { type: "email" }, code: { type: "text" } },
+    async authorize(credentials) {
+      const r = await accountsApi<Account>("/auth/verify", {
+        email: String(credentials?.email ?? ""),
+        code: String(credentials?.code ?? ""),
+      });
+      if (r.ok) return { id: r.data.id, email: r.data.email, name: r.data.name };
+      const left = r.code === "invalid_code" ? /(\d+) tr/.exec(r.message)?.[1] : undefined;
+      throw new PasswordSignin(left ? `invalid_code_${left}` : r.code || "invalid_code");
+    },
+  }),
+);
 if (demoMode) {
   providers.push(
     Credentials({
@@ -41,11 +80,6 @@ if (devLogin) {
     }),
   );
 }
-
-export const oauthProviders = providers
-  .map((p) => (typeof p === "function" ? p() : p))
-  .filter((p) => p.type === "oauth" || p.type === "oidc")
-  .map((p) => ({ id: p.id, name: p.name }));
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,

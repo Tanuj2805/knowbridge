@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
 from sqlalchemy import func, select
 
-from app import audit, gatekeeper, jobs
+from app import audit, drift, gatekeeper, jobs
 from app.agents import composer, interviewer
 from app.auth import DB, CurrentUser, ProjectPrincipal
 from app.db.models import (
@@ -75,7 +75,8 @@ def _out(db: DB, h: Handover, user_id: uuid.UUID, cls=HandoverOut, **extra):
         successor=UserOut.model_validate(h.successor), approver=UserOut.model_validate(h.approver),
         leaver_last_day=h.leaver_last_day, created_at=h.created_at, questions_total=sum(counts.values()),
         questions_answered=counts.get(QuestionStatus.answered, 0),
-        questions_open=sum(counts.get(s, 0) for s in OPEN), my_open=mine or 0, **extra,
+        questions_open=sum(counts.get(s, 0) for s in OPEN), my_open=mine or 0, kind=h.kind or "handover",
+        area=(h.scope or {}).get("area_name", ""), **extra,
     )
 
 
@@ -152,12 +153,17 @@ def get_handover(project_id: uuid.UUID, handover_id: uuid.UUID, p: ProjectPrinci
     latest = db.scalar(select(func.max(HandoverSection.version)).where(HandoverSection.handover_id == h.id)) or 0
     open_flags = db.scalar(select(func.count()).select_from(ClaimFlag).where(
         ClaimFlag.handover_id == h.id, ClaimFlag.resolved.is_(False))) if manage or user.id == h.approver_id else 0
+    published = []
+    if h.version and (manage or user.id == h.approver_id):
+        published = db.scalars(select(HandoverSection).where(HandoverSection.handover_id == h.id,
+                                                             HandoverSection.version == h.version)).all()
+    pack_changed = len({cid for _, cid in _pack_changes(db, published)})
     return _out(db, h, user.id, HandoverDetail, questions=questions, can_manage=manage, preparing=preparing,
                 claims_ready=interviewer.latest_run(db, project_id) is not None,
                 approved_claims=sum(len(g) for g in picked.by_section.values())
                 + sum(len(g) for g in picked.withheld.values()),
                 latest_version=latest, published_version=h.version, composing=_busy(db, "handover.compose", h.id),
-                can_publish=_can_publish(p, user, h), open_flags=open_flags or 0)
+                can_publish=_can_publish(p, user, h), open_flags=open_flags or 0, pack_changed=pack_changed)
 
 
 @router.post("/{handover_id}/interview", status_code=202)
@@ -293,16 +299,37 @@ def get_pack(project_id: uuid.UUID, handover_id: uuid.UUID, p: ProjectPrincipal,
         audit.record(db, actor_id=user.id, action="pack.view", object_type="handover", object_id=h.id,
                      project_id=project_id, version=v)
         db.commit()
+    changes = _pack_changes(db, sections)
     return PackOut(
         version=v, published_version=h.version, is_published=v == h.version and h.version > 0, title=h.title,
         leaver=UserOut.model_validate(h.leaver), successor=UserOut.model_validate(h.successor),
         approver=UserOut.model_validate(h.approver), leaver_last_day=h.leaver_last_day,
         sections=[PackSectionOut(id=sec.id, key=sec.key, title=sec.title, intro=(sec.content or {}).get("intro", ""),
-                                 blocks=(sec.content or {}).get("blocks", []), withheld=sec.withheld or {},
-                                 acknowledged_at=sec.acknowledged_at) for sec in sections],
+                                 blocks=[b | ({"changed": changes[(sec.id, b.get("claim_id"))]}
+                                              if (sec.id, b.get("claim_id")) in changes else {})
+                                         for b in (sec.content or {}).get("blocks", [])],
+                                 withheld=sec.withheld or {}, acknowledged_at=sec.acknowledged_at)
+                  for sec in sections],
         plan=[PlanItemOut.model_validate(i) for i in plan], flags=flags,
         can_acknowledge=user.id == h.successor_id and v == h.version, can_publish=_can_publish(p, user, h),
     )
+
+
+def _pack_changes(db: DB, sections: list[HandoverSection]) -> dict[tuple[uuid.UUID, str], dict]:
+    """Pack lines whose evidence changed at its source after the pack was written: "changed since
+    you read it" once the section was read, "changed since this was written" before. The pack
+    itself stays as it was; the line says what happened instead."""
+    out: dict[tuple[uuid.UUID, str], dict] = {}
+    for sec in sections:
+        ids = [uuid.UUID(b["claim_id"]) for b in (sec.content or {}).get("blocks", []) if b.get("claim_id")]
+        for cid, d in drift.latest_by_claim(db, ids, since=sec.created_at).items():
+            out[(sec.id, str(cid))] = {
+                "at": d.detected_at.isoformat(), "outcome": d.outcome,
+                "outcome_text": drift.OUTCOME_TEXT.get(d.outcome, d.outcome),
+                "since_read": bool(sec.acknowledged_at and d.detected_at > sec.acknowledged_at),
+                "in_review": d.reopened, "after": d.after[:400], "note": d.note,
+            }
+    return out
 
 
 def _successor_only(db: DB, p, project_id, handover_id, user) -> Handover:

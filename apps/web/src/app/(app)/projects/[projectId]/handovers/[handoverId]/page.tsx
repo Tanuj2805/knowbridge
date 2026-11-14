@@ -1,4 +1,4 @@
-import { BookOpen, Check, Flag, MessageSquareText } from "lucide-react";
+import { BookOpen, Check, Flag, MessageSquareText, RefreshCw } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,14 +9,37 @@ import { HandoverStages } from "@/components/handover-stages";
 import { Avatar, Card, CardHeader, PageHeader, Progress, Tag, buttonClass } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { formatDate, formatDateTime, plural } from "@/lib/format";
-import { HANDOVER_STATUS_LABEL, HANDOVER_STATUS_TONE, type GapQuestion, type HandoverDetail, type User } from "@/lib/types";
+import {
+  CAPTURE_STATUS_LABEL,
+  HANDOVER_STATUS_LABEL,
+  HANDOVER_STATUS_TONE,
+  type GapQuestion,
+  type HandoverDetail,
+  type User,
+} from "@/lib/types";
 import { ComposeButton, PublishButton } from "./pack-actions";
 import { StartInterview } from "./start-interview";
 
 export const metadata: Metadata = { title: "Handover" };
 
-const KIND_LABEL = { choose: "Sources disagree", confirm: "To confirm", fill: "Missing", "": "" } as const;
-const KIND_TONE = { choose: "warning", confirm: "info", fill: "danger", "": "neutral" } as const;
+const KIND_LABEL = {
+  choose: "Sources disagree",
+  confirm: "To confirm",
+  fill: "Missing",
+  capture_breaks: "If they were away",
+  capture_depends: "Depends on them",
+  capture_backup: "Backup",
+  "": "",
+} as const;
+const KIND_TONE = {
+  choose: "warning",
+  confirm: "info",
+  fill: "danger",
+  capture_breaks: "accent",
+  capture_depends: "accent",
+  capture_backup: "accent",
+  "": "neutral",
+} as const;
 
 function Person({ role, user, note }: { role: string; user: User; note?: string }) {
   return (
@@ -43,15 +66,20 @@ export default async function HandoverPage({ params }: PageProps<"/projects/[pro
   const waitingOnAnswers = h.questions.some((q) => q.status === "answered" && q.effects.length === 0);
   const interviewUrl = `/projects/${projectId}/handovers/${handoverId}/interview`;
   const packUrl = `/projects/${projectId}/handovers/${handoverId}/pack`;
+  const capture = h.kind === "capture";
 
   return (
     <div>
       <AutoRefresh active={h.preparing || waitingOnAnswers || h.composing} every={2500} />
       <PageHeader
-        back={{ href: `/projects/${projectId}/handovers`, label: "All handovers" }}
+        back={
+          capture
+            ? { href: `/projects/${projectId}/radar`, label: "Risk radar" }
+            : { href: `/projects/${projectId}/handovers`, label: "All handovers" }
+        }
         eyebrow={
           <Tag tone={HANDOVER_STATUS_TONE[h.status]} dot>
-            {HANDOVER_STATUS_LABEL[h.status]}
+            {capture ? CAPTURE_STATUS_LABEL[h.status] : HANDOVER_STATUS_LABEL[h.status]}
           </Tag>
         }
         title={h.title}
@@ -73,27 +101,45 @@ export default async function HandoverPage({ params }: PageProps<"/projects/[pro
         }
       />
 
-      <div className="grid border-y border-rule sm:grid-cols-3 sm:[&>*+*]:border-l sm:[&>*+*]:border-rule sm:[&>*+*]:pl-6">
-        <Person
-          role="Leaving"
-          user={h.leaver}
-          note={h.leaver_last_day ? `Last day ${formatDate(h.leaver_last_day)}` : undefined}
-        />
-        <Person role="Taking over" user={h.successor} />
-        <Person role="Approves" user={h.approver} />
-      </div>
+      {capture ? (
+        <>
+          <p className="mb-5 max-w-3xl text-[15px] leading-relaxed text-ink-muted">
+            Nobody is leaving. The Risk Radar found that {h.leaver.name} holds most of what the project knows about the{" "}
+            {h.area || "this"} area, so these questions get it into the claim ledger now, while it&apos;s easy to ask.
+          </p>
+          <div className="grid border-y border-rule sm:grid-cols-3 sm:[&>*+*]:border-l sm:[&>*+*]:border-rule sm:[&>*+*]:pl-6">
+            <Person role="Knows this area" user={h.leaver} />
+            <Person role="Learns from the answers" user={h.successor} />
+            <Person role="Started by" user={h.approver} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid border-y border-rule sm:grid-cols-3 sm:[&>*+*]:border-l sm:[&>*+*]:border-rule sm:[&>*+*]:pl-6">
+            <Person
+              role="Leaving"
+              user={h.leaver}
+              note={h.leaver_last_day ? `Last day ${formatDate(h.leaver_last_day)}` : undefined}
+            />
+            <Person role="Taking over" user={h.successor} />
+            <Person role="Approves" user={h.approver} />
+          </div>
 
-      <div className="mt-8">
-        <HandoverStages handover={h} />
-      </div>
+          <div className="mt-8">
+            <HandoverStages handover={h} />
+          </div>
+        </>
+      )}
 
       <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_21rem] lg:gap-16">
         <section aria-label="Gap Interview" className="min-w-0">
           <div className="flex flex-wrap items-end justify-between gap-3 border-t border-ink/80 pt-4">
             <div>
-              <h2 className="font-display text-[1.2rem] text-ink">Gap Interview</h2>
+              <h2 className="font-display text-[1.2rem] text-ink">{capture ? "Knowledge capture" : "Gap Interview"}</h2>
               <p className="text-[13px] text-ink-muted">
-                Questions for {h.leaver.name} about what the evidence leaves unclear.
+                {capture
+                  ? `Questions for ${h.leaver.name} about the ${h.area || "this"} area. Each answer becomes a claim in the ledger.`
+                  : `Questions for ${h.leaver.name} about what the evidence leaves unclear.`}
               </p>
             </div>
             {h.questions.length > 0 && (
@@ -151,7 +197,7 @@ export default async function HandoverPage({ params }: PageProps<"/projects/[pro
           )}
         </section>
 
-        {(h.can_manage || h.can_publish) && (
+        {!capture && (h.can_manage || h.can_publish) && (
           <Card as="aside" className="self-start lg:sticky lg:top-24">
             <CardHeader title="Handover pack">
               Written from approved claims only, filtered to what {h.successor.name} may see.
@@ -184,6 +230,19 @@ export default async function HandoverPage({ params }: PageProps<"/projects/[pro
                     <p className="flex items-start gap-2 text-[13px] text-[var(--grade-conflicting)]">
                       <Flag className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
                       {h.successor.name} flagged {plural(h.open_flags, "claim")} as possibly wrong. See them in the pack.
+                    </p>
+                  )}
+                  {h.pack_changed > 0 && (
+                    <p className="flex items-start gap-2 text-[13px] text-accent">
+                      <RefreshCw className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                      <span>
+                        The sources behind {plural(h.pack_changed, "claim")} in the published pack changed since it was
+                        written.{" "}
+                        <Link href={`/projects/${projectId}/ledger?review=changed`} className="font-medium underline-offset-2 hover:underline">
+                          Review them
+                        </Link>
+                        , then write a new version.
+                      </span>
                     </p>
                   )}
                 </div>

@@ -6,7 +6,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from starlette.concurrency import run_in_threadpool
 
-from app import audit, gatekeeper, jobs, secretbox, storage
+from app import audit, gatekeeper, jobs, livesync, secretbox, storage
 from app.auth import DB, CurrentUser, ProjectPrincipal
 from app.config import get_settings
 from app.connectors import ConnectorError
@@ -85,7 +85,12 @@ async def _store_files(project_id: uuid.UUID, source: Source, files: list[Upload
 @router.get("", response_model=list[SourceOut])
 def list_sources(project_id: uuid.UUID, p: ProjectPrincipal, db: DB):
     require(policy.can_view_ledger(p), "Only admins and approvers can see sources.")
-    return db.scalars(select(Source).where(Source.project_id == project_id).order_by(Source.created_at)).all()
+    out = []
+    for s in db.scalars(select(Source).where(Source.project_id == project_id).order_by(Source.created_at)):
+        row = SourceOut.model_validate(s)
+        row.next_check_at = livesync.next_check(s)
+        out.append(row)
+    return out
 
 
 @router.post("", response_model=SourceOut, status_code=201)

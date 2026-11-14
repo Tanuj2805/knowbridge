@@ -50,6 +50,8 @@ export type Source = {
   item_count: number;
   last_synced_at: string | null;
   created_at: string;
+  /** When the live-sync schedule reads it next (live GitHub and Jira sources only). */
+  next_check_at?: string | null;
   config: {
     repo?: string;
     files?: string[];
@@ -243,6 +245,65 @@ export type Claim = {
   replaced_by: ClaimRef | null;
   conflicts: ClaimRef[];
   evidence: ClaimCite[];
+  /** Evidence it cites changed at its source and nobody has reviewed it since. */
+  source_changed: boolean;
+  drift: Drift | null;
+};
+
+export type DriftOutcome =
+  | "quote_intact"
+  | "pending"
+  | "supports"
+  | "partial"
+  | "contradicts"
+  | "unrelated"
+  | "removed"
+  | "needs_person";
+
+/** One time evidence a claim cites changed at its source, and what KnowBridge made of it. */
+export type Drift = {
+  id: string;
+  claim_id: string;
+  claim_statement: string;
+  claim_status: Claim["status"] | null;
+  evidence_id: string | null;
+  evidence_title: string;
+  source_name: string;
+  change: "changed" | "removed" | "restored";
+  outcome: DriftOutcome;
+  outcome_text: string;
+  quote: string;
+  before: string;
+  after: string;
+  note: string;
+  grade_before: Grade | "";
+  grade_after: Grade | "";
+  reopened: boolean;
+  simulated: boolean;
+  detected_at: string;
+  checked_at: string | null;
+  resolved_at: string | null;
+  resolved_by_name: string;
+};
+
+export type DriftPage = {
+  sync_every_hours: number;
+  open: number;
+  checking: number;
+  items: Drift[];
+  can_simulate: boolean;
+};
+
+/** How serious a change is, for its label: [short label, plain explanation]. */
+export const DRIFT_LABEL: Record<DriftOutcome, [string, string]> = {
+  quote_intact: ["Quote unchanged", "The item was edited, but the words the claim quotes are still there."],
+  pending: ["Re-checking", "The quoted words changed; the Skeptic is re-reading the new text."],
+  supports: ["Still holds", "The item was reworded, and the new text still backs the claim."],
+  partial: ["Weakened", "The new text backs only part of the claim."],
+  contradicts: ["Now contradicted", "The new text says something different."],
+  unrelated: ["No longer stated", "The new text doesn't say this any more."],
+  removed: ["Source deleted", "The item was deleted where it came from."],
+  needs_person: ["Needs a person", "No AI model may read this item, so a person has to re-read it."],
 };
 
 export type LedgerPage = {
@@ -255,7 +316,7 @@ export type LedgerPage = {
   replaced: number;
   removed: number;
   hidden: number;
-  review: { todo?: number; approved?: number };
+  review: { todo?: number; approved?: number; changed?: number };
   can_review: boolean;
 };
 
@@ -323,6 +384,9 @@ export type Handover = {
   questions_answered: number;
   questions_open: number;
   my_open: number;
+  /** "capture": a Risk Radar knowledge capture (the person stays; nobody takes over). */
+  kind: "handover" | "capture";
+  area: string;
 };
 
 export type GapQuestion = {
@@ -330,7 +394,7 @@ export type GapQuestion = {
   position: number;
   question: string;
   why_asked: string;
-  kind: "choose" | "confirm" | "fill" | "";
+  kind: "choose" | "confirm" | "fill" | "capture_breaks" | "capture_depends" | "capture_backup" | "";
   status: QuestionStatus;
   answer: string;
   answered_by_name: string;
@@ -352,6 +416,8 @@ export type HandoverDetail = Handover & {
   composing: boolean;
   can_publish: boolean;
   open_flags: number;
+  /** Claims in the published pack whose evidence changed since it was written. */
+  pack_changed: number;
 };
 
 export const HANDOVER_STATUS_LABEL: Record<HandoverStatus, string> = {
@@ -360,6 +426,15 @@ export const HANDOVER_STATUS_LABEL: Record<HandoverStatus, string> = {
   in_review: "In review",
   published: "Published",
   acknowledged: "Acknowledged",
+};
+
+/** A Risk Radar knowledge capture goes through the same steps, but nobody is leaving. */
+export const CAPTURE_STATUS_LABEL: Record<HandoverStatus, string> = {
+  drafting: "Knowledge capture",
+  interviewing: "Knowledge capture",
+  in_review: "All answered",
+  published: "All answered",
+  acknowledged: "All answered",
 };
 
 /** The badge colour for each handover status. */
@@ -395,6 +470,16 @@ export type PackBlock = {
   since: string | null;
   history: { statement: string; until: string | null }[];
   cites: PackCite[];
+  /** Added when it's read: its evidence changed at the source after this version was written. */
+  changed?: {
+    at: string;
+    outcome: DriftOutcome;
+    outcome_text: string;
+    since_read: boolean;
+    in_review: boolean;
+    after: string;
+    note: string;
+  };
 };
 
 export type PackSection = {
@@ -507,3 +592,67 @@ export type AskResult = {
 };
 
 export type ChatTurn = { role: "user" | "assistant"; content: string; token?: string | null };
+
+// --- Knowledge Risk Radar ----------------------------------------------------
+
+export type RadarSignal = "ownership" | "tickets" | "code" | "talk";
+
+export type RadarHolder = {
+  user_id: string;
+  name: string;
+  share: number;
+  signals: Partial<Record<RadarSignal, number>>;
+};
+
+export type RadarArea = {
+  key: string;
+  name: string;
+  kind: "system" | "contact";
+  risk: "high" | "medium" | "low";
+  top_share: number;
+  summary: string;
+  holders: RadarHolder[];
+  backup: RadarHolder | null;
+  importance: number;
+  subjects: string[];
+  claim_count: number;
+  signals: Partial<Record<RadarSignal, number>>;
+  leaving: boolean;
+  capture_id: string | null;
+  capture_status: HandoverStatus | "";
+};
+
+export type RadarPerson = {
+  user_id: string;
+  name: string;
+  high: number;
+  medium: number;
+  areas: string[];
+  leaving: boolean;
+};
+
+export type Radar = {
+  claims_ready: boolean;
+  areas: RadarArea[];
+  people: RadarPerson[];
+  withheld: number;
+  /** The AI is still grouping the latest claims into areas. */
+  grouping: boolean;
+  grouped_by: "model" | "words" | "";
+};
+
+// --- editor access tokens ------------------------------------------------------
+
+export type ApiToken = {
+  id: string;
+  name: string;
+  prefix: string;
+  project_id: string;
+  project_name: string;
+  created_at: string;
+  expires_at: string | null;
+  last_used_at: string | null;
+  revoked: boolean;
+};
+
+export type NewApiToken = ApiToken & { token: string };

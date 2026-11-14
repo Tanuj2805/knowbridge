@@ -10,23 +10,28 @@ import { buttonClass, cx } from "./ui";
 const SRC = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || "/demo/knowbridge-walkthrough.mp4";
 const POSTER = "/demo/knowbridge-walkthrough-poster.jpg";
 const CAPTIONS = "/demo/knowbridge-walkthrough.vtt";
-export const DEMO_LENGTH = "7 min";
+export const DEMO_LENGTH = "11 min";
 
 /** Where each part of the walkthrough starts, in seconds. */
 export const CHAPTERS = [
   { t: 0, label: "The problem" },
   { t: 17, label: "How it works" },
   { t: 48, label: "Four words to know" },
-  { t: 101, label: "Create a project and add people" },
-  { t: 130, label: "Connect GitHub and Jira" },
-  { t: 174, label: "Evidence and Sentinel" },
-  { t: 200, label: "AI agents build the claims" },
-  { t: 231, label: "The claim ledger" },
-  { t: 258, label: "Handover and Gap Interview" },
-  { t: 306, label: "Approve and publish" },
-  { t: 328, label: "The handover pack" },
-  { t: 346, label: "Ask the chat" },
-  { t: 376, label: "Guardrails" },
+  { t: 84, label: "Create a project and add people" },
+  { t: 128, label: "Connect GitHub and Jira" },
+  { t: 172, label: "Evidence and Sentinel" },
+  { t: 198, label: "AI agents build the claims" },
+  { t: 229, label: "The claim ledger" },
+  { t: 255, label: "Risk Radar" },
+  { t: 308, label: "Handover and Gap Interview" },
+  { t: 354, label: "Approve and publish" },
+  { t: 374, label: "The handover pack" },
+  { t: 392, label: "Live sync and drift" },
+  { t: 456, label: "Ask the chat" },
+  { t: 485, label: "VS Code extension" },
+  { t: 528, label: "Live in VS Code" },
+  { t: 587, label: "MCP with Claude Code" },
+  { t: 624, label: "Guardrails" },
 ];
 
 const clock = (t: number) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
@@ -49,7 +54,8 @@ function Player({ open, onOpenChange, start }: { open: boolean; onOpenChange: (o
             <div className="min-w-0">
               <Dialog.Title className="font-display text-[1.15rem] tracking-[-0.02em]">KnowBridge, start to finish</Dialog.Title>
               <Dialog.Description className="text-[13px] text-white/70">
-                A {DEMO_LENGTH} walkthrough: set up a project, connect sources, build claims, hand over, and ask.
+                An {DEMO_LENGTH} walkthrough: set up a project, connect sources, build claims, see the risks, hand
+                over, keep it current, and use it from VS Code.
               </Dialog.Description>
             </div>
             <Dialog.Close

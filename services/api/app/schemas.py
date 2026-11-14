@@ -156,6 +156,7 @@ class SourceOut(Out):
     last_synced_at: datetime | None
     created_at: datetime
     config: dict
+    next_check_at: datetime | None = None  # when the live-sync schedule reads it next
 
 
 # --- runs and the claim ledger ----------------------------------------------
@@ -210,6 +211,45 @@ class ClaimRef(BaseModel):
     grade: Grade
 
 
+class DriftOut(BaseModel):
+    """One time evidence a claim cites changed at its source, and what KnowBridge made of it."""
+
+    id: uuid.UUID
+    claim_id: uuid.UUID
+    claim_statement: str = ""
+    claim_status: ClaimStatus | None = None
+    evidence_id: uuid.UUID | None
+    evidence_title: str = ""
+    source_name: str = ""
+    change: str  # changed | removed | restored
+    outcome: str  # quote_intact | pending | supports | partial | contradicts | unrelated | removed | needs_person
+    outcome_text: str = ""
+    quote: str
+    before: str
+    after: str
+    note: str
+    grade_before: str
+    grade_after: str
+    reopened: bool
+    simulated: bool
+    detected_at: datetime
+    checked_at: datetime | None
+    resolved_at: datetime | None
+    resolved_by_name: str = ""
+
+
+class DriftPage(BaseModel):
+    sync_every_hours: float  # the live-sync schedule; 0 = off
+    open: int  # claims waiting for a person after a change
+    checking: int  # changes the Skeptic hasn't re-read yet
+    items: list[DriftOut]
+    can_simulate: bool = False  # demo mode: an admin may edit an item as if it changed at its source
+
+
+class SimulateChangeIn(BaseModel):
+    text: str = Field(min_length=1, max_length=20_000)
+
+
 class ClaimOut(Out):
     id: uuid.UUID
     type: ClaimType
@@ -237,6 +277,8 @@ class ClaimOut(Out):
     replaced_by: ClaimRef | None = None
     conflicts: list[ClaimRef] = []
     evidence: list[ClaimCite] = []
+    source_changed: bool = False  # evidence it cites changed and a person hasn't looked since
+    drift: DriftOut | None = None  # the latest change that mattered
 
 
 class LedgerPage(BaseModel):
@@ -248,7 +290,7 @@ class LedgerPage(BaseModel):
     grades: dict[str, int] = {}  # by grade, same claims
     replaced: int = 0  # earlier versions shown under the claim that replaced them
     removed: int = 0  # claims set aside: by the Skeptic, the Gap Interview, or a reviewer
-    review: dict[str, int] = {}  # {"todo": drafts to review, "approved": approved or edited}
+    review: dict[str, int] = {}  # {"todo": drafts, "approved": approved or edited, "changed": source changed}
     can_review: bool = False
     hidden: int  # claims that cite something this person can't see
 
@@ -300,6 +342,8 @@ class HandoverOut(BaseModel):
     questions_answered: int = 0
     questions_open: int = 0
     my_open: int = 0  # open questions assigned to the person asking
+    kind: str = "handover"  # or "capture": a Risk Radar knowledge capture (nobody is leaving)
+    area: str = ""  # for a capture, the area it is about
 
 
 class HandoverDetail(HandoverOut):
@@ -313,6 +357,7 @@ class HandoverDetail(HandoverOut):
     composing: bool = False
     can_publish: bool = False  # the handover's approver
     open_flags: int = 0
+    pack_changed: int = 0  # claims in the published pack whose evidence changed since it was written
 
 
 class AnswerIn(BaseModel):
@@ -393,3 +438,54 @@ class FlagIn(BaseModel):
 class PlanDoneIn(BaseModel):
     done: bool
 
+
+
+# --- Knowledge Risk Radar -----------------------------------------------------
+
+
+class RadarHolder(BaseModel):
+    user_id: uuid.UUID
+    name: str
+    share: float
+    signals: dict[str, int]
+
+
+class RadarArea(BaseModel):
+    key: str
+    name: str
+    kind: str
+    risk: str
+    top_share: float
+    summary: str
+    holders: list[RadarHolder]
+    backup: RadarHolder | None
+    importance: int
+    subjects: list[str]
+    claim_count: int
+    signals: dict[str, int]
+    leaving: bool
+    capture_id: uuid.UUID | None
+    capture_status: str
+
+
+class RadarPerson(BaseModel):
+    user_id: uuid.UUID
+    name: str
+    high: int
+    medium: int
+    areas: list[str]
+    leaving: bool
+
+
+class RadarOut(BaseModel):
+    claims_ready: bool
+    areas: list[RadarArea]
+    people: list[RadarPerson]
+    withheld: int
+    grouping: bool = False  # the model is still grouping the claims into areas
+    grouped_by: str = ""  # "model" or "words"
+
+
+class CaptureIn(BaseModel):
+    area: str = Field(min_length=1, max_length=200)
+    user_id: uuid.UUID | None = None  # whose knowledge to capture; default: the area's main holder

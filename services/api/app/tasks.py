@@ -36,6 +36,8 @@ def reconstruct(db: Session, payload: dict) -> None:
     run = db.get(Run, run_id)
     if run is not None and run.status == RunStatus.done:
         _index_later(db, run.project_id)
+        jobs.enqueue(db, "radar.areas", {"project_id": run.project_id})
+        db.commit()
 
 
 @handler("interview.prepare")
@@ -73,3 +75,19 @@ def index_claims(db: Session, payload: dict) -> None:
     from app import rag
 
     rag.index_claims(db, uuid.UUID(payload["project_id"]))
+
+
+@handler("radar.areas")
+def group_radar_areas(db: Session, payload: dict) -> None:
+    """The Risk Radar's areas: the model groups the latest run's claim subjects once."""
+    from app import radar
+
+    radar.group_with_model(db, uuid.UUID(payload["project_id"]))
+
+
+@handler("drift.check")
+def check_drift(db: Session, payload: dict) -> None:
+    """The Skeptic re-reads claims whose quoted evidence changed at its source."""
+    from app import drift
+
+    drift.check_pending(db, uuid.UUID(payload["project_id"]))

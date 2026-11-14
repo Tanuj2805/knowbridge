@@ -220,7 +220,7 @@ def _evidence_chunk(h: retrieval.Hit, source: str) -> Chunk:
 
 
 def retrieve(db: Session, p: Principal, project_id: uuid.UUID, question: str, *, k_claims: int = 10,
-             k_evidence: int = 12, approved_only: bool = False) -> Retrieved:
+             k_evidence: int = 12, approved_only: bool = False, pinned: list[uuid.UUID] | None = None) -> Retrieved:
     """Claims ranked by three signals fused by rank (their words, their meaning, and the evidence
     the project search finds for the question), plus that evidence itself."""
     claims, cites = visible_claims(db, p, project_id)
@@ -267,6 +267,10 @@ def retrieve(db: Session, p: Principal, project_id: uuid.UUID, question: str, *,
         for rank, cid in enumerate(ranked[:CLAIM_CANDIDATES]):
             scores[cid] = scores.get(cid, 0.0) + 1 / (RRF_K + rank)
     by_id = {c.id: c for c in claims}
+    # claims tied to the file the person has open (editor): always in, ahead of the rest
+    for rank, cid in enumerate(pinned or []):
+        if cid in by_id:
+            scores[cid] = scores.get(cid, 0.0) + 1.0 / (1 + rank * 0.1)
     # a checked, approved, important claim edges ahead of an equally relevant draft
     for cid in scores:
         c = by_id[cid]
@@ -540,7 +544,10 @@ def safe_history(history: list[Turn]) -> tuple[list[Turn], int]:
 
 
 def answer(db: Session, p: Principal, project: Project, question: str, *, approved_only: bool = False,
-           history: list[Turn] | None = None) -> Answer:
+           history: list[Turn] | None = None, about_file: str = "", file_facts: str = "",
+           pinned: list[uuid.UUID] | None = None) -> Answer:
+    """`about_file`: the path open in the person's editor ("this file" in the question means it);
+    `file_facts`: what KnowBridge counted about it (who changed it); `pinned`: the claims tied to it."""
     s = get_settings()
     model = ask_model()
     empty = Context(text="", chunks=[], withheld=0, dropped=0)
@@ -556,7 +563,11 @@ def answer(db: Session, p: Principal, project: Project, question: str, *, approv
 
     if _small_talk(question):  # "hi", "thanks": nothing to look up
         return Answer(GREETING.format(name=project.name), True, [], [], empty, model, guard=notes)
-    retrieved = retrieve(db, p, project.id, _search_text(question, history), approved_only=approved_only)
+    search = _search_text(question, history)
+    if about_file:  # "who owns this file?" is searched with the file's own words too
+        stem = re.sub(r"\.[\w]+$", "", about_file.rstrip("/").rsplit("/", 1)[-1])
+        search = f"{search} {' '.join(re.split(r'[_\W]+', stem))}"
+    retrieved = retrieve(db, p, project.id, search, approved_only=approved_only, pinned=(pinned or [])[:8])
     context = build_context(project, retrieved, budget_tokens=s.rag_context_tokens, external=ask_is_external())
     if context.cleaned:
         notes |= {"cleaned_sources": context.cleaned, "cleaned_kinds": context.cleaned_kinds}
@@ -567,7 +578,14 @@ def answer(db: Session, p: Principal, project: Project, question: str, *, approv
     # layer 2: the record sits between tags whose id a source can't know, so it can't end them early
     b = guard.boundary(context.text)
     conversation = f"<conversation>\n{_conversation(history)}\n</conversation>\n\n" if history else ""
-    prompt = (f'<evidence id="{b}">\n{context.text}\n</evidence id="{b}">\n\n{conversation}'
+    open_file = ""
+    if about_file:
+        open_file = (f"The person has this file open in their editor, and \"this file\" means it: "
+                     f"{guard.fence(about_file)}\n"
+                     f"What KnowBridge counted about it (not a source you can cite): {guard.fence(file_facts)}\n"
+                     "Only say someone owns or worked on this file if the record above says so, or the "
+                     "count does; otherwise say the record doesn't show it.\n\n")
+    prompt = (f'<evidence id="{b}">\n{context.text}\n</evidence id="{b}">\n\n{conversation}{open_file}'
               f"Question from the person you're helping: {guard.fence(question)}")
     system = system_prompt()
     try:

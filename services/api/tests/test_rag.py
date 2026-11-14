@@ -107,6 +107,14 @@ def model(monkeypatch):
     monkeypatch.setattr(gateway, "_call", call)
     monkeypatch.setattr(gateway._pacer, "wait", lambda model, rpm: None)
     monkeypatch.setattr(llm, "configured", lambda: True)
+    # Answers are cached by prompt, and the test database outlives a test run: an identical prompt
+    # from an earlier run would be answered from the cache and never reach this fake model.
+    from app.db.models import LlmCache
+    from app.db.session import SessionLocal
+
+    with SessionLocal() as db:
+        db.query(LlmCache).filter(LlmCache.agent == "rag_answer").delete()
+        db.commit()
     return seen
 
 
@@ -423,12 +431,16 @@ def test_off_topic_questions_get_a_polite_no(db, project, words, model):
 
 
 def test_each_person_has_a_question_limit(db, project, words, model, monkeypatch):
+    from datetime import UTC, datetime, timedelta
+
     from app.config import get_settings
     from app.db.models import AuditEvent
 
     meera = _uid(db, "meera")
-    asked = db.scalar(select(func.count()).select_from(AuditEvent).where(AuditEvent.actor_id == meera,
-                                                                          AuditEvent.action == "rag.ask"))
+    # the limit counts the last minute only; the test database keeps older questions from earlier runs
+    asked = db.scalar(select(func.count()).select_from(AuditEvent).where(
+        AuditEvent.actor_id == meera, AuditEvent.action == "rag.ask",
+        AuditEvent.at >= datetime.now(UTC) - timedelta(minutes=1)))
     monkeypatch.setattr(get_settings(), "rag_ask_per_minute", asked + 1)
     client = _as("meera@nimbus.demo")
     assert client.post(f"/projects/{project}/rag/ask", json={"question": "hi"}).status_code == 200

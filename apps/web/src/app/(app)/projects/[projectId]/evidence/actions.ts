@@ -30,3 +30,23 @@ export async function relabelEvidence(
   }
   revalidatePath(`/projects/${projectId}/evidence/${evidenceId}`);
 }
+
+/** Demo mode: rewrite an item as if it had changed in its tool, so drift detection runs on it. */
+export async function simulateChange(
+  projectId: string,
+  evidenceId: string,
+  text: string,
+): Promise<{ error?: string; claims?: number }> {
+  try {
+    const r = await api<{ claims: number }>(`/projects/${projectId}/evidence/${evidenceId}/simulate-change`, {
+      method: "POST",
+      json: { text },
+    });
+    revalidatePath(`/projects/${projectId}/evidence/${evidenceId}`);
+    revalidatePath(`/projects/${projectId}/ledger`);
+    revalidatePath(`/projects/${projectId}/sources`);
+    return { claims: r.claims };
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : "Couldn't make the change." };
+  }
+}

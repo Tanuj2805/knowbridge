@@ -67,8 +67,14 @@ export default async function HandoversPage({ params }: PageProps<"/projects/[pr
                       {h.title}
                     </p>
                     <p className="truncate text-[13px] text-ink-faint">
-                      Approved by {h.approver.name}
-                      {h.leaver_last_day && ` · last day ${formatDate(h.leaver_last_day)}`}
+                      {h.kind === "capture" ? (
+                        <>Knowledge capture from the Risk Radar · started by {h.approver.name}</>
+                      ) : (
+                        <>
+                          Approved by {h.approver.name}
+                          {h.leaver_last_day && ` · last day ${formatDate(h.leaver_last_day)}`}
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>

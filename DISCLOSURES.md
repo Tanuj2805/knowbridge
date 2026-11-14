@@ -50,6 +50,11 @@ The Round 1 plan document was drafted with AI assistance and reviewed by me.
 | ONNX Runtime (Microsoft) | MIT | api (via FastEmbed) |
 | paraphrase-multilingual-mpnet-base-v2 (sentence-transformers; ONNX export by Xenova) | Apache-2.0 | api (search model, downloaded from Hugging Face on first use) |
 | gitleaks default rules (adapted in `app/sentinel/rules.py`) | MIT | api |
+| MCP TypeScript SDK (`@modelcontextprotocol/sdk`) | MIT | integrations (MCP server) |
+| zod | MIT | integrations (MCP tool inputs) |
+| VS Code extension API (`@types/vscode`) | MIT | integrations (VS Code extension) |
+| esbuild, TypeScript | MIT / Apache-2.0 | integrations (build only) |
+| `@vscode/vsce` | MIT | integrations (packages the .vsix, build only) |
 
 ## Data
 

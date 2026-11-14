@@ -4,12 +4,13 @@ import logging
 import signal
 import time
 
-from app import logs, tasks  # noqa: F401  (tasks registers handlers)
+from app import livesync, logs, tasks  # noqa: F401  (tasks registers handlers)
 from app.db.session import SessionLocal
 from app.jobs import WORKER_ID, claim_next, requeue_orphaned, run
 
 log = logging.getLogger("worker")
 _stop = False
+SCHEDULE_EVERY = 60.0  # seconds between looks at which live sources are due a sync
 
 
 def _shutdown(*_: object) -> None:
@@ -27,7 +28,15 @@ def main() -> None:
         if n := requeue_orphaned(db):
             log.info("requeued %s jobs left running by a previous worker on this host", n)
     idle = 0.5
+    next_schedule = 0.0
     while not _stop:
+        if time.monotonic() >= next_schedule:
+            next_schedule = time.monotonic() + SCHEDULE_EVERY
+            try:
+                with SessionLocal() as db:
+                    livesync.schedule_due(db)
+            except Exception:  # noqa: BLE001 - the schedule must never stop the worker
+                log.exception("live sync schedule failed")
         with SessionLocal() as db:
             job = claim_next(db)
             if job is None:

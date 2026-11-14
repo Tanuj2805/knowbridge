@@ -451,6 +451,9 @@ class Handover(Base):
         ForeignKey("projects.id", ondelete="CASCADE"), index=True
     )
     title: Mapped[str] = mapped_column(String(300))
+    # "handover" (someone is leaving) or "capture" (a Risk Radar knowledge capture: the person
+    # stays; their answers just get what only they know into the ledger early).
+    kind: Mapped[str] = mapped_column(String(16), default="handover", server_default="handover")
     leaver_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     successor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     approver_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
@@ -590,6 +593,86 @@ class AuditEvent(Base):
     object_id: Mapped[str] = mapped_column(String(64))
     meta: Mapped[dict] = mapped_column(JSONB, default=dict)
     at: Mapped[datetime] = _created()
+
+
+class ClaimDrift(Base):
+    """What happened to a claim when evidence it cites changed or disappeared at its source.
+
+    change: "changed" (the item was edited), "removed" (deleted at the source) or "restored".
+    outcome: "quote_intact" (the quoted words are still there: nothing to do), "pending" (waiting for
+    the Skeptic to re-read it), "supports" / "partial" / "contradicts" / "unrelated" (what the Skeptic
+    found in the new text), "removed", or "needs_person" (no model may read it; a person checks).
+    """
+
+    __tablename__ = "claim_drifts"
+    __table_args__ = (Index("ix_claim_drifts_project_detected", "project_id", "detected_at"),)
+    id: Mapped[uuid.UUID] = _uuid()
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
+    claim_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("claims.id", ondelete="CASCADE"), index=True)
+    evidence_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("evidence_units.id", ondelete="SET NULL"))
+    source_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("sources.id", ondelete="SET NULL"))
+    change: Mapped[str] = mapped_column(String(16))
+    outcome: Mapped[str] = mapped_column(String(24), index=True)
+    quote: Mapped[str] = mapped_column(Text, default="", server_default="")  # the words the claim cites
+    before: Mapped[str] = mapped_column(Text, default="", server_default="")  # the passage before the change
+    after: Mapped[str] = mapped_column(Text, default="", server_default="")  # and after it
+    note: Mapped[str] = mapped_column(Text, default="", server_default="")  # the Skeptic's note on the new text
+    stance_before: Mapped[str] = mapped_column(String(16), default="", server_default="")
+    grade_before: Mapped[str] = mapped_column(String(32), default="", server_default="")
+    grade_after: Mapped[str] = mapped_column(String(32), default="", server_default="")
+    reopened: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # sent back to review
+    simulated: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")  # demo-mode edit
+    detected_at: Mapped[datetime] = _created()
+    checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resolved_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+
+
+class PasswordCredential(Base):
+    """An email-and-password sign-in. The password is kept only as a scrypt hash. It can't be used
+    until the email is confirmed (verified_at), so nobody can claim someone else's address."""
+
+    __tablename__ = "password_credentials"
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failed_attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class EmailToken(Base):
+    """A one-time 6-digit code sent by email: confirm an address ("verify") or set a new password
+    ("reset"). Only a keyed hash (HMAC) of it is stored; five wrong tries and it stops working."""
+
+    __tablename__ = "email_tokens"
+    id: Mapped[uuid.UUID] = _uuid()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    purpose: Mapped[str] = mapped_column(String(16))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = _created()
+
+
+class ApiToken(Base):
+    """A personal access token for the editor extension and MCP server: read-only, one project.
+    Only a SHA-256 hash is stored; the token itself is shown once, when it is made."""
+
+    __tablename__ = "api_tokens"
+    id: Mapped[uuid.UUID] = _uuid()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(100))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    prefix: Mapped[str] = mapped_column(String(16))  # "kb_a1b2c3", to tell tokens apart in a list
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
 
 
 class Job(Base):

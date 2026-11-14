@@ -9,7 +9,7 @@ from app import embeddings, llm, logs
 from app.auth import CurrentUser
 from app.config import get_settings
 from app.db.session import engine
-from app.routers import demo, evidence, handovers, ledger, projects, rag, sources
+from app.routers import accounts, demo, drift, editor, evidence, handovers, ledger, projects, radar, rag, sources
 from app.schemas import UserOut
 
 logs.configure()
@@ -25,12 +25,16 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="KnowBridge API", version="0.1.0", lifespan=lifespan)
+app.include_router(accounts.router)
+app.include_router(editor.router)  # before projects: /projects/resolve isn't a project id
 app.include_router(projects.router)
 app.include_router(sources.router)
 app.include_router(evidence.router)
 app.include_router(ledger.router)
 app.include_router(handovers.router)
 app.include_router(rag.router)
+app.include_router(radar.router)
+app.include_router(drift.router)
 app.include_router(demo.router)
 
 

@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 
-from app import audit, gatekeeper, jobs, llm, rag, retrieval
+from app import audit, drift, gatekeeper, jobs, llm, rag, retrieval
 from app.agents.facts import SYSTEM_DATA
 from app.auth import DB, CurrentUser, ProjectPrincipal
 from app.db.models import (
@@ -29,6 +29,7 @@ from app.db.models import (
     User,
 )
 from app.gatekeeper import policy, require
+from app.routers.drift import drift_out
 from app.schemas import (
     BulkReview,
     ClaimCite,
@@ -43,7 +44,7 @@ from app.schemas import (
 router = APIRouter(prefix="/projects/{project_id}", tags=["ledger"])
 ACTIVE = (RunStatus.queued, RunStatus.running)
 AGENTS = ("decision_miner", "ownership_mapper", "risk_detector")
-_FILLED = {"evidence", "from_system_data", "checked", "skeptic_note", "replaces", "replaced_by", "conflicts",
+_FILLED = {"drift", "evidence", "from_system_data", "checked", "skeptic_note", "replaces", "replaced_by", "conflicts",
            "reviewed_by_name"}
 APPROVED = (ClaimStatus.approved, ClaimStatus.edited)
 EVIDENCE_HITS = 20  # evidence results a claim search looks through
@@ -105,7 +106,7 @@ def list_claims(
     agent: str | None = Query(default=None, max_length=40),
     q: str | None = Query(default=None, max_length=200),
     show: str | None = Query(default=None, pattern="^(removed)$"),
-    review: str | None = Query(default=None, pattern="^(todo|approved)$"),
+    review: str | None = Query(default=None, pattern="^(todo|approved|changed)$"),
     limit: int | None = Query(default=None, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
 ):
@@ -138,12 +139,15 @@ def list_claims(
     grades = Counter(c.grade.value for c in current if _checked(c, run))
 
     review_counts = {"todo": sum(1 for c in current if c.status == ClaimStatus.draft),
-                     "approved": sum(1 for c in current if c.status in APPROVED)}
+                     "approved": sum(1 for c in current if c.status in APPROVED),
+                     "changed": sum(1 for c in current if c.source_changed)}
     shown = removed if show == "removed" else current
     if review == "todo":
         shown = [c for c in shown if c.status == ClaimStatus.draft]
     elif review == "approved":
         shown = [c for c in shown if c.status in APPROVED]
+    elif review == "changed":
+        shown = [c for c in shown if c.source_changed]
     if type:
         shown = [c for c in shown if c.type == type]
     if grade:
@@ -163,6 +167,8 @@ def list_claims(
     shown = shown[offset:offset + limit] if limit else shown[offset:]
     reviewers = {u.id: u.name for u in db.scalars(select(User).where(
         User.id.in_({c.reviewed_by for c in shown if c.reviewed_by})))}
+    drifts = drift.latest_by_claim(db, [c.id for c in shown])
+    unit_by_id = {u.id: (u, name) for _, u, name in cites}
     items = []
     for c in shown:
         out = ClaimOut.model_validate({k: getattr(c, k) for k in ClaimOut.model_fields if k not in _FILLED})
@@ -170,6 +176,10 @@ def list_claims(
         out.checked = _checked(c, run)
         out.reviewed_by_name = reviewers.get(c.reviewed_by, "")
         out.skeptic_note = (c.skeptic or {}).get("note", "")
+        if c.id in drifts:
+            d = drifts[c.id]
+            u, name = unit_by_id.get(d.evidence_id, (None, ""))
+            out.drift = drift_out(d, c, u, name)
         out.replaces = [_ref(o) for o in allowed if o.superseded_by == c.id and o.status != ClaimStatus.rejected]
         out.replaced_by = _ref(by_id[c.superseded_by]) if c.superseded_by in by_id else None
         out.conflicts = [_ref(by_id[o]) for o in (c.conflicts_with or [])
@@ -266,6 +276,7 @@ def _review(db: DB, claim: Claim, user: User, action: str, body: ClaimReview | N
         rag.forget_vector(claim)  # its meaning changed: re-made in the background
         jobs.enqueue(db, "rag.index", {"project_id": claim.project_id})
     claim.version += 1
+    drift.resolve(db, claim, user)  # a person has looked at it since its source changed
     claim.reviewed_by, claim.reviewed_at = user.id, datetime.now(UTC)
     claim.review_note = (body.note.strip() if body else "") or (claim.review_note if action == "edit" else "")
     audit.record(db, actor_id=user.id, action=f"claim.{action}", object_type="claim", object_id=claim.id,

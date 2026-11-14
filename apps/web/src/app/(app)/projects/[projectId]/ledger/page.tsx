@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AgentPipeline } from "@/components/agent-pipeline";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { DriftLabel, DriftStory } from "@/components/drift-bits";
 import { KindTag, RedactedText, SensitivityTag } from "@/components/evidence-bits";
 import { FilterMenu } from "@/components/filter-menu";
 import { Pagination } from "@/components/pagination";
@@ -41,7 +42,7 @@ export default async function LedgerView({ params, searchParams }: PageProps<"/p
     type: one("type") as ClaimType | "",
     grade: one("grade") as Grade | "",
     show: one("show") === "removed" ? "removed" : "",
-    review: (["todo", "approved"] as const).find((r) => r === one("review")) ?? "",
+    review: (["todo", "approved", "changed"] as const).find((r) => r === one("review")) ?? "",
     q: one("q"),
     page: Math.max(1, Math.floor(Number(one("page"))) || 1),
   };
@@ -60,6 +61,7 @@ export default async function LedgerView({ params, searchParams }: PageProps<"/p
   const total = Object.values(page.counts).reduce((a, b) => a + (b ?? 0), 0);
   const base = `/projects/${projectId}/ledger`;
   const todo = page.review.todo ?? 0;
+  const changed = page.review.changed ?? 0;
 
   /** This page with some filters changed and the rest kept; any change goes back to page 1. */
   const link = (changes: Partial<Record<keyof Filters, string | number | null>>) => {
@@ -156,6 +158,7 @@ export default async function LedgerView({ params, searchParams }: PageProps<"/p
                         ["", "All"],
                         ["todo", "To review"],
                         ["approved", "Approved"],
+                        ...(changed > 0 || f.review === "changed" ? ([["changed", "Source changed"]] as const) : []),
                       ] as const
                     ).map(([key, label]) => (
                       <Link
@@ -171,7 +174,7 @@ export default async function LedgerView({ params, searchParams }: PageProps<"/p
                         {label}
                         {key && (
                           <span className="ml-1 tabular-nums text-ink-faint">
-                            {key === "todo" ? todo : (page.review.approved ?? 0)}
+                            {key === "todo" ? todo : key === "changed" ? changed : (page.review.approved ?? 0)}
                           </span>
                         )}
                       </Link>
@@ -220,6 +223,26 @@ export default async function LedgerView({ params, searchParams }: PageProps<"/p
                 </Link>
               )}
             </nav>
+
+            {/* evidence changed at its source: the claims it touched need a look */}
+            {changed > 0 && f.review !== "changed" && !f.show && (
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 border-accent pl-3 text-[14px] text-ink">
+                <span>
+                  <span className="font-semibold">{plural(changed, "claim")}</span> {changed === 1 ? "cites" : "cite"}{" "}
+                  something that changed at its source since it was checked.
+                </span>
+                <Link href={link({ review: "changed", show: null })} className="font-medium text-accent hover:underline">
+                  See what changed →
+                </Link>
+              </p>
+            )}
+            {f.review === "changed" && (
+              <p className="max-w-3xl text-[13px] leading-relaxed text-ink-muted">
+                Evidence these claims quote was edited or deleted where it came from. KnowBridge compared the new text
+                with the quote, and where the words changed, the Skeptic re-read it. Approving or rejecting a claim
+                marks the change as seen.
+              </p>
+            )}
 
             {/* approve in bulk, when there's something to approve */}
             {page.can_review && todo > 0 && !f.show && (
@@ -512,6 +535,15 @@ function ClaimCard({
         {c.grade_reason === "unanswered" && (
           <p className="mt-2 text-[13px] font-medium text-[var(--grade-missing)]">Asked, but nobody answered</p>
         )}
+        {c.source_changed && c.drift && (
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-muted">
+            <DriftLabel outcome={c.drift.outcome} />
+            <span>
+              its source {c.drift.change === "removed" ? "was deleted" : "changed"} on {formatDate(c.drift.detected_at)}
+              {c.drift.reopened && ", so it's back for review"}: open the details to compare
+            </span>
+          </p>
+        )}
       </div>
 
       <DetailsToggle
@@ -534,6 +566,11 @@ function ClaimCard({
           {c.alternatives.length > 0 && (
             <Detail title="Considered instead">
               <p className="text-[14px] text-ink">{c.alternatives.join("; ")}</p>
+            </Detail>
+          )}
+          {c.drift && (
+            <Detail title={c.source_changed ? "What changed at the source" : "Last change at the source"}>
+              <DriftStory d={c.drift} />
             </Detail>
           )}
           {skeptic && (

@@ -29,6 +29,16 @@ export function timeAgo(iso: string | null | undefined, now = Date.now()): strin
   return formatDate(iso);
 }
 
+/** "in 4 hr", for something scheduled. */
+export function timeUntil(iso: string | null | undefined, now = Date.now()): string {
+  if (!iso) return "";
+  const m = Math.round((new Date(iso).getTime() - now) / 60000);
+  if (m < 2) return "any minute now";
+  if (m < 60) return `in ${m} min`;
+  const h = Math.round(m / 60);
+  return h < 24 ? `in ${h} hr` : `in ${Math.round(h / 24)} days`;
+}
+
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${n.toLocaleString("en-IN")} ${n === 1 ? one : many}`;
 }

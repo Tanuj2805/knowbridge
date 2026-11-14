@@ -60,8 +60,11 @@ class Cite:
 
 
 def decide(*, ctype: ClaimType, cites: list[Cite], overreach: bool, unanswered: bool, conflicting: bool,
-           system: str = "", note: str = "") -> tuple[Grade | None, str]:
-    """The grade and a reason a person can read. None means the claim has no support and is removed."""
+           system: str = "", note: str = "", drifted: bool = False) -> tuple[Grade | None, str]:
+    """The grade and a reason a person can read. None means the claim has no support and is removed.
+
+    `drifted`: evidence it cites changed or disappeared at the source after it was graded. Such a claim
+    is never removed by code: a person decides whether it still holds."""
     if system:
         return Grade.verified, f"Read straight from {system}, not written by a model."
     supports = [c for c in cites if c.stance == "supports"]
@@ -70,6 +73,9 @@ def decide(*, ctype: ClaimType, cites: list[Cite], overreach: bool, unanswered: 
     partial = [c for c in cites if c.stance == "partial"]
     contradicts = [c for c in cites if c.stance == "contradicts"]
     if not supports and not partial and not contradicts:
+        if drifted:
+            return Grade.inferred, ("Its sources changed or were deleted and no longer back it; "
+                                    "a person needs to check it still holds.")
         return None, f"{REMOVED}: none of its passages are about it.{f' {note}' if note else ''}"
     if any(c.attested for c in contradicts):
         return Grade.conflicting, note or "The person leaving says otherwise in the Gap Interview."
@@ -132,6 +138,7 @@ def _inputs(c: Claim) -> dict | None:
     return {
         "ctype": c.type, "system": system, "note": "" if by_work else verdict.get("note", ""),
         "overreach": bool(verdict.get("overreach")) and not by_work, "unanswered": bool(verdict.get("unanswered")),
+        "drifted": bool(verdict.get("drift")),
         "cites": [Cite(_stance(c, ce), str(ce.unit.source_id), ce.unit.author,
                        attested=ce.unit.kind == INTERVIEW_KIND) for ce in c.evidence],
     }
