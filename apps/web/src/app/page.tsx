@@ -104,9 +104,12 @@ export default async function Home() {
               </Link>
             ) : (
               <>
-                <Link href="/signin" className={cx(buttonClass("quiet"), "hidden sm:inline-flex")}>
-                  Sign in
-                </Link>
+                {/* the wrapper hides it on phones: the button's own inline-flex would override `hidden` */}
+                <span className="hidden sm:contents">
+                  <Link href="/signin" className={buttonClass("quiet")}>
+                    Sign in
+                  </Link>
+                </span>
                 <Link href="/signup" className={buttonClass("primary")}>
                   Get started
                 </Link>
@@ -153,6 +156,19 @@ export default async function Home() {
                 without an account.
               </p>
             )}
+            {/* first-timers: the walkthrough first makes every screen make sense */}
+            <figure className="mx-auto mt-9 max-w-xl animate-rise border-l-2 border-accent pl-4 text-left [animation-delay:220ms]">
+              <blockquote className="text-[15px] leading-relaxed text-ink">
+                &ldquo;New here? Watch the {DEMO_LENGTH} demo before you start. It walks through a whole handover on a
+                sample project, so every screen makes sense when you try it yourself.&rdquo;
+              </blockquote>
+              <figcaption className="mt-2 text-[14px]">
+                <a href="#video" className="group inline-flex items-center gap-1 font-medium text-accent">
+                  Watch the demo, or jump to a part
+                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </a>
+              </figcaption>
+            </figure>
             <ul className="mt-10 flex animate-rise flex-wrap justify-center gap-x-7 gap-y-2 text-[13px] text-ink-muted [animation-delay:240ms]">
               {["Nine agents, one job each", "Every claim cited", "Nothing shared until a person approves"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
