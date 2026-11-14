@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app import demo, drift, gatekeeper, livesync
 from app.agents.skeptic import Check, SkepticOut, Stance
@@ -310,7 +310,8 @@ def test_the_published_pack_says_what_changed_since_it_was_read(db, setup, monke
                               "since": None, "history": [], "cites": []}]})
     db.add(sec)
     db.commit()
-    sec.acknowledged_at = datetime.now(UTC)
+    # the database's clock, like the change's own time: the computer's clock can drift from Docker's
+    sec.acknowledged_at = db.scalar(select(func.now()))
     db.commit()
 
     old = _edit(db, setup.unit, TEXT.replace("60", "30"))

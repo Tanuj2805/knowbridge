@@ -107,6 +107,9 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_ssl: bool = False  # True for port 465 (SSL from the start); False uses STARTTLS
     mail_from: str = ""  # e.g. "KnowBridge <no-reply@yourdomain.com>"; defaults to smtp_user
+    # Brevo's HTTPS email API, for hosts that block SMTP ports (Railway's Hobby plan does). When set,
+    # it is used instead of SMTP. MAIL_FROM must be a sender verified in Brevo.
+    brevo_api_key: str = ""
 
     # Encrypts stored connector credentials. Generate with:
     #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
