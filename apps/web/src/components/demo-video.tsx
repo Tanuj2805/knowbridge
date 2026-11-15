@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { Play, X } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { buttonClass, cx } from "./ui";
 
 // The walkthrough video. Served from /public by default; set NEXT_PUBLIC_DEMO_VIDEO_URL to host it
@@ -95,6 +95,95 @@ function usePlayer() {
     setOpen(true);
   };
   return { play, player: <Player open={open} onOpenChange={setOpen} start={start} /> };
+}
+
+const NUDGE_CLOSED = "kb-demo-nudge-closed";
+
+/**
+ * A card that floats in the corner of the home page and stays there while you scroll: first-time
+ * visitors are asked to watch the walkthrough before they start. Closing it (or watching) is
+ * remembered in this browser.
+ */
+export function DemoNudge() {
+  const { play, player } = usePlayer();
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    let closed = false;
+    try {
+      closed = localStorage.getItem(NUDGE_CLOSED) === "1";
+    } catch {
+      /* storage blocked: just show it */
+    }
+    if (closed) return;
+    const t = setTimeout(() => setShown(true), 1200); // after the hero has settled
+    return () => clearTimeout(t);
+  }, []);
+
+  const dismiss = () => {
+    setShown(false);
+    try {
+      localStorage.setItem(NUDGE_CLOSED, "1");
+    } catch {
+      /* fine: it just comes back next visit */
+    }
+  };
+  const watch = () => {
+    dismiss();
+    play();
+  };
+
+  return (
+    <>
+      {shown && (
+        <aside
+          aria-label="Watch the demo video"
+          className="fixed inset-x-4 bottom-4 z-30 animate-rise sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[23.5rem]"
+        >
+          <div className="relative rounded-2xl border border-accent/40 bg-paper-raised/95 p-4 shadow-lift ring-4 ring-accent/10 backdrop-blur">
+            <div className="flex items-start gap-3.5">
+              <button
+                type="button"
+                onClick={watch}
+                aria-label={`Play the ${DEMO_LENGTH} demo video`}
+                className="relative mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-transform duration-150 hover:scale-105"
+              >
+                <span aria-hidden="true" className="absolute inset-0 rounded-full bg-accent/50 animate-ping-soft" />
+                <Play className="relative size-4 translate-x-px fill-current" aria-hidden="true" />
+              </button>
+              <div className="min-w-0 flex-1 pr-6">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-accent">New here?</p>
+                <p className="mt-0.5 text-[15px] font-semibold leading-snug text-ink">
+                  Watch the {DEMO_LENGTH} demo before you start
+                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
+                  A whole handover on a sample project, start to finish, so every screen makes sense.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={watch} className={buttonClass("primary", "sm")}>
+                    <Play className="size-3.5 fill-current" aria-hidden="true" />
+                    Watch now
+                  </button>
+                  <a href="#video" onClick={() => setShown(false)} className={buttonClass("quiet", "sm")}>
+                    Jump to a part
+                  </a>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={dismiss}
+              aria-label="Close"
+              className="absolute right-2.5 top-2.5 inline-flex size-7 items-center justify-center rounded-md text-ink-faint hover:bg-paper-sunk hover:text-ink"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        </aside>
+      )}
+      {player}
+    </>
+  );
 }
 
 /** "Watch the video" as a button, for the hero. */

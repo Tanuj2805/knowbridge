@@ -2,7 +2,7 @@ import { ArrowRight, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
-import { DEMO_LENGTH, DemoVideoSection, WatchVideoButton } from "@/components/demo-video";
+import { DEMO_LENGTH, DemoNudge, DemoVideoSection, WatchVideoButton } from "@/components/demo-video";
 import { GridBackground } from "@/components/grid-background";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TypedTitle } from "@/components/typed-title";
@@ -156,19 +156,6 @@ export default async function Home() {
                 without an account.
               </p>
             )}
-            {/* first-timers: the walkthrough first makes every screen make sense */}
-            <figure className="mx-auto mt-9 max-w-xl animate-rise border-l-2 border-accent pl-4 text-left [animation-delay:220ms]">
-              <blockquote className="text-[15px] leading-relaxed text-ink">
-                &ldquo;New here? Watch the {DEMO_LENGTH} demo before you start. It walks through a whole handover on a
-                sample project, so every screen makes sense when you try it yourself.&rdquo;
-              </blockquote>
-              <figcaption className="mt-2 text-[14px]">
-                <a href="#video" className="group inline-flex items-center gap-1 font-medium text-accent">
-                  Watch the demo, or jump to a part
-                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                </a>
-              </figcaption>
-            </figure>
             <ul className="mt-10 flex animate-rise flex-wrap justify-center gap-x-7 gap-y-2 text-[13px] text-ink-muted [animation-delay:240ms]">
               {["Nine agents, one job each", "Every claim cited", "Nothing shared until a person approves"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
@@ -307,6 +294,9 @@ export default async function Home() {
           </div>
         </section>
       </main>
+
+      {/* first-timers: a floating "watch the demo first" card, until they close it or watch */}
+      <DemoNudge />
 
       <footer className="border-t border-rule">
         <div className="mx-auto flex max-w-[80rem] flex-col gap-3 px-4 py-8 text-[13px] text-ink-faint sm:flex-row sm:items-center sm:justify-between sm:px-6">
